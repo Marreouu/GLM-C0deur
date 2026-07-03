@@ -1,0 +1,26 @@
+[zai]
+api_key = "VOTRE_CLE_API_ZAI"
+base_url = "https://api.z.ai/api/paas/v4"
+# Cerveau : glm-4.5-flash (gratuit et fiable).
+model = "glm-4.5-flash"
+fallback_model = ""
+max_retries = 3
+
+temperature = 0.3
+max_tokens = 8192
+auto_approve = false
+
+# ─── Orchestrateur : cerveau (Z.ai ci-dessus) + codeur API OpenRouter ───
+[coder]
+enabled = true
+base_url = "https://openrouter.ai/api/v1"
+model = "qwen/qwen3-coder"   # Qwen3-Coder 480B, gratuit sur OpenRouter
+fallback_model = "qwen/qwen3-next-80b-a3b-instruct:free"  # secours si rate-limite
+api_key = "VOTRE_CLE_API_OPENROUTER"
+
+# ─── Skills ───────────────────────────────────────────────────────────
+[skills]
+# Charge les skills de Claude Code s'ils sont presents (sinon ignore).
+include_claude = true
+# Dossiers supplementaires de skills (.md ou <nom>/SKILL.md).
+dirs = []

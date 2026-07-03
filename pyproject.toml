@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glmcode"
+version = "0.1.0"
+description = "Assistant de codage en terminal propulse par GLM (API Z.ai)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "rich>=13.7",
+    "prompt_toolkit>=3.0",
+]
+
+[project.scripts]
+glm = "glmcode.cli:main"
+
+[tool.setuptools]
+packages = ["glmcode"]
+
+[tool.setuptools.package-data]
+glmcode = ["builtin_skills/*.md"]

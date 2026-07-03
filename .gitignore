@@ -1,0 +1,22 @@
+# Secrets — ne jamais commiter la cle API
+config.toml
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Artefacts de test / session
+demo/
+.remember/
+
+# Fichiers parasites
+*.png
+conv.md
+
+# Dossier sensible
+01_RAPPORT/*.md
+01_RAPPORT/*.ps1
+01_RAPPORT/
