@@ -14,7 +14,7 @@ auto_approve = false
 [coder]
 enabled = true
 base_url = "https://openrouter.ai/api/v1"
-model = "qwen/qwen3-coder"   # Qwen3-Coder 480B, gratuit sur OpenRouter
+model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter
 fallback_model = "qwen/qwen3-next-80b-a3b-instruct:free"  # secours si rate-limite
 api_key = "VOTRE_CLE_API_OPENROUTER"
 
