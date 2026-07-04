@@ -1,321 +1,291 @@
 # Commandes Internes de GLM Codeur
 
-Une fois GLM Codeur installé, vous pouvez utiliser diverses commandes internes pour contrôler l'assistant. Ces commandes commencent par un slash `/`.
+GLM Codeur dispose d'un système de commandes internes accessibles via des commandes slash (`/`) dans l'interface. Ces commandes permettent de contrôler le comportement de l'assistant, gérer les sessions, et invoquer des compétences (skills).
 
-## 🚀 Commandes Principales
+## Commandes Slash Disponibles
 
 ### `/help`
-**Description:** Affiche l'aide complète avec toutes les commandes disponibles
-**Usage:** `/help`
-**Exemple:**
+Affiche l'aide avec la liste des commandes disponibles.
+
+**Exemple :**
 ```
 /help
 ```
 
 ### `/reset`
-**Description:** Efface l'historique de la conversation actuelle
-**Usage:** `/reset`
-**Effet:** Démarre une nouvelle conversation fraîche
+Efface l'historique de la conversation en cours.
 
-### `/exit` ou `/quit`
-**Description:** Quitte GLM Codeur
-**Usage:** `/exit` ou `/quit`
-**Effet:** Ferme l'application proprement
-
----
-
-## 🎯 Commandes de Modèle
+**Exemple :**
+```
+/reset
+```
 
 ### `/model <nom>`
-**Description:** Change le modèle LLM courant
-**Usage:** `/model gpt-4` ou `/model claude-3`
-**Exemples:**
+Change le modèle de langage utilisé par l'assistant.
+
+**Exemple :**
 ```
-/model gpt-4                    # Affiche le modèle actuel
-/model claude-3                 # Change pour Claude 3
-/model                         # Affiche le modèle actuel
+/model glm-4-plus
 ```
 
-### `/mode [nom]` ou `/auto`
-**Description:** Change le mode de fonctionnement
-**Usage:** `/mode normal`, `/mode auto`, `/mode plan`
-**Effet:**
-- `normal`: Confirme chaque action (écriture/commande)
-- `auto`: Exécute les actions sans demander
-- `plan`: Lecture seule : propose un plan sans rien modifier
-**Raccourci:** `Shift+Tab` pour basculer entre les modes
+Si aucun nom n'est spécifié, affiche le modèle actuel :
+```
+/model
+```
 
----
+### `/mode [nom]`
+Change le mode de fonctionnement de l'assistant.
 
-## 📚 Commandes de Skills
+**Modes disponibles :**
+- `normal` : Confirme chaque action (écriture/commande)
+- `auto` : Exécute les actions sans demander
+- `plan` : Lecture seule - propose un plan sans rien modifier
+
+**Exemple :**
+```
+/mode auto
+```
+
+Pour basculer entre les modes, vous pouvez également utiliser `Shift+Tab`.
 
 ### `/skills`
-**Description:** Liste tous les skills disponibles
-**Usage:** `/skills`
-**Exemple:**
+Liste tous les skills disponibles dans l'environnement actuel.
+
+**Exemple :**
 ```
 /skills
 ```
-**Résultat:** Affiche tous les skills avec leur description et source
-
-### `/<skill> [texte]`
-**Description:** Invoque un skill spécifique avec un argument optionnel
-**Usage:** `/nom-du-skill [argument]`
-**Exemples:**
-```
-/review-code mon_fichier.py      # Analyse le fichier Python
-/generate-code "crée une fonction pour calculer la factorielle"  # Génère du code
-/debug "mon code plante quand j'essaie de me connecter"  # Débogage
-/explique "qu'est-ce que le machine learning"  # Explication
-```
-
----
-
-## 💾 Commandes de Session
 
 ### `/session`
-**Description:** Affiche l'ID de la session courante
-**Usage:** `/session`
-**Exemple:**
+Affiche l'ID de la session courante.
+
+**Exemple :**
 ```
 /session
 ```
-**Résultat:** `Session : abc123  (reprise : glmcode --resume abc123)`
 
 ### `/sessions`
-**Description:** Liste toutes les sessions enregistrées
-**Usage:** `/sessions`
-**Exemple:**
+Liste toutes les sessions enregistrées.
+
+**Exemple :**
 ```
 /sessions
 ```
-**Résultat:** Affiche toutes les sessions avec leur ID, date, nombre de tours et titre
 
 ### `/resume [id]`
-**Description:** Reprend une session précédente
-**Usage:** `/resume abc123` ou `/resume` (pour la dernière session)
-**Exemples:**
-```
-/resume abc123                   # Reprend la session spécifique
-/resume                         # Reprend la dernière session
-```
+Reprend une session précédente. Si aucun ID n'est spécifié, reprend la dernière session.
 
----
-
-## 🔧 Commandes Système
+**Exemple :**
+```
+/resume abc123
+/resume
+```
 
 ### `/ping`
-**Description:** Teste la connexion au backend LLM
-**Usage:** `/ping`
-**Exemple:**
+Teste la connexion au backend.
+
+**Exemple :**
 ```
 /ping
 ```
-**Résultat:** `Connexion OK · Service opérationnel` ou `Échec : message d'erreur`
 
+### `/exit` ou `/quit`
+Quitte l'application.
+
+**Exemple :**
+```
+/exit
+```
+
+## Système de Skills
+
+Les skills sont des fichiers Markdown réutilisables qui peuvent être invoqués avec la syntaxe `/nom-skill [argument]`.
+
+### Structure d'un Skill
+
+Un skill est un fichier `.md` avec un frontmatter optionnel :
+
+```markdown
+---
+name: revue-code
+description: Revue de code approfondie
 ---
 
-## 🎨 Skills Intégrés Disponibles
+<instructions injectées dans le contexte quand on invoque /revue-code>
+```
 
-GLM Codeur inclut plusieurs prédéfinis que vous pouvez utiliser immédiatement :
+### Emplacements des Skills
 
-### `/review-code`
-**Description:** Analyse et critique de code
-**Usage:** `/review-code nom_du_fichier.py`
-**Fonctionnalités:**
-- Résumé du code
-- Points forts
-- Points faibles et améliorations
-- Bugs potentiels
-- Suggestions de refactorisation
+1. `./skills/` (dossier du projet courant)
+2. `~/.glmcode/skills/` (skills globaux de l'utilisateur)
+3. Le pack intégré livré avec GLM Code
 
+### Exemples d'utilisation
+
+```
+/revue-code app.py
+/test-unitaire fonction_calcul
+```
+
+## Modes de Fonctionnement
+
+### Mode Normal
+- Confirmation requise pour chaque action
+- Idéal pour un contrôle précis
+
+### Mode Auto
+- Exécution automatique des actions
+- Plus rapide mais nécessite confiance dans l'assistant
+
+### Mode Plan
+- Lecture seule
+- Propose un plan sans exécuter d'actions
+- Utile pour la planification
+
+## Contrôles Clavier
+
+- `Shift+Tab` : Basculer entre les modes
+- `Ctrl+C` : Interrompre une opération en cours
+- `Enter` : Envoyer un message
+- `Flèche haut/bas` : Navigation dans l'historique
+
+## Dépannage
+
+### Problèmes de connexion
+Utilisez `/ping` pour tester la connexion au backend.
+
+### Skills non trouvés
+Vérifiez que vos fichiers `.md` sont dans les bons répertoires :
+- `./skills/` pour les skills du projet
+- `~/.glmcode/skills/` pour les skills globaux
+
+### Sessions
+Si une session ne se charge pas correctement :
+1. Vérifiez l'ID avec `/sessions`
+2. Utilisez `/resume <id>` pour reprendre la session
+
+## Commandes en Ligne de Commande (glm --*)
+
+Les commandes suivantes sont utilisées au lancement de GLM Codeur, avant d'entrer dans l'interface interactive.
+
+### `glm --resume ID`
+**Description:** Lance GLM et reprend une session spécifique
+**Usage:** `glm --resume <ID>`
 **Exemple:**
-```
-/review-code mon_app.py
+```bash
+glm --resume abc123                    # Reprend la session avec l'ID abc123
+glm --resume session-2024-01-15_14-30-00  # Reprend une session précise
 ```
 
-### `/generate-code`
-**Description:** Génère du code Python selon une description
-**Usage:** `/generate-code "description de ce que vous voulez"`
-**Fonctionnalités:**
-- Code fonctionnel et testable
-- Documentation avec docstrings
-- Bonnes pratiques Python
-- Gestion des erreurs
-- Exemples d'utilisation
-
+### `glm --continue` ou `glm --cont`
+**Description:** Lance GLM et reprend la dernière session
+**Usage:** `glm --continue` ou `glm --cont`
 **Exemple:**
-```
-/generate-code "crée une classe pour gérer une liste de tâches avec méthodes ajouter, supprimer et lister"
+```bash
+glm --continue                         # Reprend la dernière session
+glm --cont                            # Abréviation de --continue
 ```
 
-### `/refactor-code`
-**Description:** Refactorise du code existant
-**Usage:** `/refactor-code nom_du_fichier.py`
-**Fonctionnalités:**
-- Amélioration de la lisibilité
-- Optimisation des performances
-- Correction des mauvaises pratiques
-- Simplification du code
-
+### `glm --list-sessions`
+**Description:** Liste toutes les sessions enregistrées puis quitte
+**Usage:** `glm --list-sessions`
 **Exemple:**
-```
-/refactor-code code_vieux.py
+```bash
+glm --list-sessions                    # Affiche toutes les sessions disponibles
 ```
 
-### `/debug`
-**Description:** Aide au débogage de code
-**Usage:** `/debug "description du problème"`
-**Fonctionnalités:**
-- Analyse des erreurs
-- Identification des causes racines
-- Propositions de solutions
-- Conseils pour éviter les récidives
-
+### `glm --version`
+**Description:** Affiche la version de GLM Codeur
+**Usage:** `glm --version`
 **Exemple:**
-```
-/debug "mon code Python plante avec une erreur de type 'list index out of range'"
+```bash
+glm --version                          # Affiche: glmcode 1.2.3
 ```
 
-### `/explique`
-**Description:** Explication de concepts ou de code
-**Usage:** `/explique "question ou concept"`
-**Fonctionnalités:**
-- Explications claires et pédagogiques
-- Analogies pour les concepts complexes
-- Exemples concrets
-- Adaptation au niveau de l'utilisateur
-
+### `glm --help`
+**Description:** Affiche l'aide des commandes en ligne de commande
+**Usage:** `glm --help`
 **Exemple:**
-```
-/explique "qu'est-ce que le machine learning et comment ça marche"
-```
-
-### `/tests`
-**Description:** Génération de tests pour le code
-**Usage:** `/tests nom_du_fichier.py`
-**Fonctionnalités:**
-- Génération de tests unitaires
-- Couverture des cas d'usage
-- Assertions appropriées
-- Documentation des tests
-
-**Exemple:**
-```
-/tests ma_fonction.py
+```bash
+glm --help                            # Affiche toutes les options de ligne de commande
 ```
 
----
+## Exemples d'Utilisation Combinée
 
-## 📁 Personnalisation des Skills
+### Flux de travail typique :
+```bash
+# 1. Voir les sessions disponibles
+glm --list-sessions
 
-### Créer un skill personnalisé
-1. Créez un fichier Markdown dans `./skills/` ou `~/.glmcode/skills/`
-2. Nommez-le avec le nom de votre skill (ex: `mon-skill.md`)
-3. Ajoutez un entête avec métadonnées :
+# 2. Reprendre la dernière session
+glm --continue
 
+# 3. Une fois dans GLM, voir la session actuelle
+/session
+
+# 4. Lister toutes les sessions internes
+/sessions
+
+# 5. Reprendre une autre session depuis l'interface interne
+/resume session-2024-01-14_10-15-00
+
+# 6. Changer de modèle ou de mode
+/model gpt-4
+/mode auto
+
+# 7. Utiliser un skill
+/review-code mon_projet/app.py
+
+# 8. Quitter et reprendre plus tard
+/exit
+
+# 9. Reprendre la session plus tard
+glm --resume session-2024-01-15_14-30-00
+```
+
+### Gestion des sessions :
+```bash
+# Créer une nouvelle session
+glm
+
+# Voir l'ID de la session courante
+/session
+
+# Quitter sans sauvegarder explicitement
+/exit
+
+# Reprendre la session plus tard
+glm --continue  # ou glm --resume <ID>
+```
+
+## Bonnes Pratiques
+
+1. **Utilisez le mode `plan`** pour les tâches complexes avant de passer en mode `auto`
+2. **Nommez vos skills de manière descriptive**
+3. **Documentez vos skills** avec des descriptions claires
+4. **Testez vos skills** dans des environnements de développement avant de les utiliser en production
+5. **Sauvegardez vos sessions** importantes avec `/session` et reprenez-les plus tard
+6. **Utilisez `glm --list-sessions`** pour voir toutes vos sessions disponibles
+
+## Création de Skills Personnalisés
+
+Pour créer un skill personnalisé :
+
+1. Créez un fichier `.md` dans `./skills/` ou `~/.glmcode/skills/`
+2. Ajoutez un frontmatter avec `name` et `description`
+3. Écrivez les instructions dans le corps du fichier
+
+Exemple (`./skills/mon-skill.md`) :
 ```markdown
 ---
 name: mon-skill
-description: Description de mon skill
+description: Un skill personnalisé
 ---
 
-Instructions complètes pour mon skill...
-{input}  # L'argument utilisateur sera inséré ici
+Vous êtes un expert en Python. Répondez à la demande suivante avec du code bien documenté.
 ```
 
-### Exemple de skill personnalisé
-```markdown
----
-name: analyse-securite
-description: Analyse de sécurité du code
----
-
-Analyse le code suivant pour détecter les problèmes de sécurité:
-
-Code:
-```python
-{input}
+Utilisation :
 ```
-
-Fournis un rapport de sécurité avec:
-1. Vulnérabilités détectées
-2. Risques associés
-3. Solutions recommandées
-4. Bonnes pratiques à appliquer
-```
-
-### Utiliser le skill
-```
-/analyse-securite mon_script.py
-```
-
----
-
-## 🎮 Contrôles Clavier
-
-### Dans l'interface en mode plein écran
-- `Shift+Tab`: Bascule entre les modes (normal/auto/plan)
-- `Ctrl+S`: Sauvegarde la conversation
-- `Ctrl+N`: Nouvelle conversation
-- `Ctrl+L`: Efface l'écran
-- `F1`: Affiche l'aide
-- `Ctrl+,`: Ouvre les paramètres
-
-### Dans l'interface en mode ligne à ligne
-- Les commandes slash comme décrit ci-dessus
-- `Ctrl+C`: Interrompt l'exécution
-- `Ctrl+D`: Quitte
-
----
-
-## 🚦 Modes de Fonctionnement
-
-### Mode Normal (`normal`)
-- **Comportement:** Confirme chaque action avant de l'exécuter
-- **Usage:** Idéal pour les débutants ou le travail critique
-- **Commande:** `/mode normal`
-
-### Mode Auto (`auto`)
-- **Comportement:** Exécute les actions sans demander confirmation
-- **Usage:** Pour les workflows rapides et les tâches répétitives
-- **Commande:** `/mode auto` ou simplement `/auto`
-
-### Mode Plan (`plan`)
-- **Comportement:** Lecture seule : propose un plan sans rien modifier
-- **Usage:** Pour l'analyse et la planification sans risque
-- **Commande:** `/mode plan`
-
----
-
-## 💡 Conseils d'Utilisation
-
-1. **Commencez avec `/help`** pour toujours avoir la liste des commandes
-2. **Utilisez `/skills`** pour découvrir tous les skills disponibles
-3. **Combinez les modes** selon votre besoin (normal pour le code critique, auto pour les tâches simples)
-4. **Créez vos propres skills** pour automatiser vos tâches répétitives
-5. **Sauvegardez vos sessions** importantes avec `/session` et reprenez-les plus tard
-
----
-
-## 🔍 Dépannage
-
-### Commande inconnue
-```
-/help  # Vérifiez la liste des commandes disponibles
-```
-
-### Problème de skill
-```
-/skills  # Vérifiez que votre skill est bien chargé
-```
-
-### Connexion LLM
-```
-/ping  # Testez la connexion au backend
-```
-
-### Session corrompue
-```
-/reset  # Effacez l'historique et recommencez
+/mon-skill Créer une fonction pour trier une liste
 ```
