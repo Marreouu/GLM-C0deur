@@ -3,7 +3,7 @@ api_key = "VOTRE_CLE_API_ZAI"
 base_url = "https://api.z.ai/api/paas/v4"
 # Cerveau : glm-4.5-flash (gratuit et fiable).
 model = "glm-4.5-flash"
-fallback_model = ""
+
 max_retries = 3
 
 temperature = 0.3
