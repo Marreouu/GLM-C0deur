@@ -1,243 +1,49 @@
 # GLM Codeur
 
-Un assistant de codage intelligent basé sur GLM, conçu pour vous aider dans vos projets de développement.
+Assistant de codage terminal utilisant l'API Z.ai / GLM.
 
 ## Installation
 
-### 🚀 Installation avancée (recommandée)
+[Instructions d'installation...]
 
-**Installation directe depuis GitHub avec fonctionnalités avancées :**
+## Configuration
 
-**Windows:**
-```bash
-# Installation complète avec détection d'environnement, gestion des erreurs et journalisation
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/install.ps1" | iex
-```
+[Instructions de configuration...]
 
-**Linux/macOS:**
-```bash
-# Installation complète avec détection d'environnement, gestion des erreurs et rollback
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/install.sh | bash
-```
+## Utilisation
 
-### 🔧 Options d'installation avancée
+[Instructions générales d'utilisation...]
 
-**Installation avec nettoyage complet (si vous avez des problèmes existants):**
+## Commandes Internes
 
-**Windows:**
-```bash
-# Désinstallation complète + réinstallation propre
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.ps1" | iex
-```
+GLM Codeur dispose d'un ensemble de commandes internes accessibles via des commandes slash (`/`) :
 
-**Linux/macOS:**
-```bash
-# Désinstallation complète + réinstallation propre avec rollback
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.sh" | bash
-```
-
-### 🗑️ Désinstallation complète
-
-**Windows:**
-```bash
-# Désinstallation complète avec suppression de tous les traces
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.ps1" | iex
-```
-
-**Linux/macOS:**
-```bash
-# Désinstallation complète avec rollback et nettoyage
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.sh" | bash
-```
-
-### 📦 Méthode manuelle (si vous avez déjà cloné le dépôt)
-
-1. **Clonez le dépôt :**
-   ```bash
-   git clone https://github.com/Marreouu/GLM-C0deur.git
-   cd GLM-C0deur
-   ```
-
-2. **Installez GLM Codeur :**
-
-   **Windows:**
-   ```bash
-   # Double-cliquez sur install/install.bat
-   # Ou exécutez en PowerShell :
-   powershell -ExecutionPolicy Bypass -File install/install.ps1
-   ```
-
-   **Linux/macOS:**
-   ```bash
-   # Exécutez le script d'installation :
-   chmod +x install/install.sh
-   ./install/install.sh
-   ```
-
-3. **Vérifiez l'installation :**
-   ```bash
-   glm --version
-   ```
-
-## ⚙️ Fonctionnalités avancées de l'installation
-
-### 🖥️ Détection automatique de l'environnement
-- **Windows:** Détection des droits administratifs, version .NET, système d'exploitation
-- **Linux/macOS:** Détection de la distribution, version bash, paquets système requis
-
-### 🛡️ Installation robuste avec gestion des erreurs
-- Vérification de la connectivité Internet
-- Gestion des timeouts et des erreurs réseau
-- Journalisation détaillée de toutes les opérations
-- Points de restauration automatiques (rollback)
-
-### 🐍 Gestion avancée de Python
-- Détection automatique de toutes les installations Python
-- Proposition de choix si plusieurs versions disponibles
-- Vérification automatique des dépendances manquantes
-- Installation de pip si nécessaire
-
-### 📁 Installation propre et organisation
-- **Windows:** Installation dans Program Files (si admin) ou AppData (utilisateur)
-- **Linux/macOS:** Installation dans /usr/local (si sudo) ou ~/.glm-code (utilisateur)
-- Création de raccourcis dans le menu Démarrer (Windows)
-- Ajout au PATH système ou utilisateur
-
-### 🔍 Post-installation et vérification
-- Tests automatiques de l'installation
-- Configuration des variables d'environment
-- Création d'un fichier de log complet
-- Proposition d'ouverture d'un terminal pour test
-
-### 🎨 Interface utilisateur améliorée
-- Barre de progression pour les opérations longues
-- Couleurs et formatage pour une meilleure lisibilité
-- Messages d'erreur clairs avec solutions proposées
-- Mode silencieux/verbose optionnel
-
-## 🎮 Commandes Internes
-
-Une fois installé, GLM Codeur offre de nombreuses commandes internes pour contrôler l'assistant. Consultez [COMMANDES.md](COMMANDES.md) pour la liste complète :
-
-### Commandes principales :
-- `/help` - Affiche l'aide complète
-- `/reset` - Efface l'historique de conversation
-- `/model <nom>` - Change le modèle LLM
-- `/mode [nom]` - Change le mode de fonctionnement (normal/auto/plan)
-
-### Commandes de skills :
-- `/skills` - Liste tous les skills disponibles
-- `/review-code` - Analyse et critique de code
-- `/generate-code` - Génère du code Python
-- `/debug` - Aide au débogage
-- `/explique` - Explication de concepts
-
-### Commandes de session :
+### Commandes de Base
+- `/help` - Affiche l'aide
+- `/reset` - Efface l'historique de la conversation
+- `/model <nom>` - Change le modèle courant
+- `/mode [nom]` - Change de mode (normal / auto / plan)
+- `/skills` - Liste les skills disponibles
 - `/session` - Affiche l'ID de la session courante
-- `/sessions` - Liste toutes les sessions enregistrées
-- `/resume [id]` - Reprend une session précédente
+- `/sessions` - Liste les sessions enregistrées
+- `/resume [id]` - Reprend une session
+- `/ping` - Teste la connexion au backend
+- `/exit`, `/quit` - Quitte l'application
 
-## ⚙️ Configuration
+### Modes de Fonctionnement
+- **normal** : Confirme chaque action (écriture / commande)
+- **auto** : Exécute les actions sans demander
+- **plan** : Lecture seule : propose un plan sans rien modifier
 
-GLM Codeur utilise un fichier de configuration TOML. Consultez le dossier `config/` pour une documentation complète :
+### Skills
+Les skills sont des fichiers Markdown réutilisables invocables par `/nom-skill`.
 
-- [config/README.md](config/README.md) - Documentation complète de la configuration
-- [config/QUICKSTART.md](config/QUICKSTART.md) - Guide de démarrage rapide
-- [config/config.example.toml](config/config.example.toml) - Fichier d'exemple complet
+Pour plus de détails sur toutes les commandes et leur utilisation, consultez [COMMANDES.md](COMMANDES.md).
 
-### Configuration rapide :
-```bash
-# Copier le fichier d'exemple
-cp config/config.example.toml ~/.glmcode/config.toml
+## Exemples
 
-# Configurer votre clé API
-export GLM_API_KEY="votre_clé_api_ici"
-```
+[Exemples d'utilisation...]
 
-## 🚀 Utilisation
+## Dépannage
 
-Une fois installé et configuré, utilisez GLM Codeur simplement :
-
-```bash
-# Démarrer l'assistant
-glm
-
-# Dans l'interface, tapez votre demande :
-"Bonjour, peux-tu m'aider avec mon projet Python ?"
-
-# Ou utilisez les commandes internes :
-/help
-/review-code mon_fichier.py
-/generate-code "crée une fonction pour calculer la factorielle"
-```
-
-## 📚 Skills Disponibles
-
-GLM Codeur inclut plusieurs skills prédéfinis :
-
-### Skills intégrés :
-- **`/review-code`** - Analyse et critique de code
-- **`/generate-code`** - Génère du code Python
-- **`/refactor-code`** - Refactorise du code existant
-- **`/debug`** - Aide au débogage
-- **`/explique`** - Explication de concepts
-- **`/tests`** - Génération de tests
-
-### Créer vos propres skills :
-Créez des fichiers Markdown dans `~/.glmcode/skills/` pour personnaliser les fonctionnalités.
-
-## 🛠️ Scripts disponibles
-
-### `install/install.ps1` / `install/install.sh`
-- Installation avancée avec détection d'environnement
-- Téléchargement direct du dépôt GitHub
-- Gestion robuste des erreurs et rollback
-- Configuration automatique du PATH
-- Création de raccourcis et lanceurs
-
-### `install/nettoyer-et-installer.ps1` / `install/nettoyer-et-installer.sh`
-- Désinstallation complète de toutes les versions existantes
-- Suppression de tous les lanceurs résiduels
-- Téléchargement et réinstallation propre depuis GitHub
-- Restauration automatique en cas d'erreur
-
-### `install/uninstall.ps1` / `install/uninstall.sh`
-- Désinstallation complète de GLM Codeur
-- Suppression de tous les lanceurs résiduels
-- Suppression du dossier d'installation
-- Suppression de la configuration
-- Vérification finale
-
-## 📖 Documentation Complète
-
-- [COMMANDES.md](COMMANDES.md) - Toutes les commandes internes et skills
-- [config/README.md](config/README.md) - Configuration détaillée
-- [config/QUICKSTART.md](config/QUICKSTART.md) - Démarrage rapide
-- [config/config.example.toml](config/config.example.toml) - Fichier de configuration exemple
-
-## 🔧 Dépannage
-
-Si vous rencontrez des problèmes :
-
-1. **Essayez la méthode de nettoyage + installation:**
-   ```bash
-   # Windows
-   irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.ps1" | iex
-   
-   # Linux/macOS
-   curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.sh" | bash
-   ```
-
-2. **Vérifiez que Python 3.11+ est installé et dans votre PATH**
-3. **Redémarrez votre terminal après l'installation**
-4. **Consultez les fichiers de log pour plus de détails:**
-   - Windows: `%TEMP%\glm-install.log`
-   - Linux/macOS: `/tmp/glm-install.log`
-
-## Contribuer
-
-Les contributions sont les bienvenues ! Veuillez consulter le dossier `docs/` pour plus d'informations sur la contribution.
-
-## Licence
-
-Ce projet est sous licence MIT.
+[Guide de dépannage...]
