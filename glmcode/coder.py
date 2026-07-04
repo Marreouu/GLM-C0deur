@@ -39,6 +39,7 @@ class Coder:
     def __init__(self, cfg: CoderConfig):
         self.cfg = cfg
         self.client = LLMClient(cfg)
+        self.current_model = cfg.model  # Modèle actuellement utilisé
 
     def implement(self, task: str, files: list[str], auto_apply: bool) -> str:
         """Genere et applique le code pour `task`. Renvoie un resume pour le cerveau."""
@@ -56,11 +57,16 @@ class Coder:
             {"role": "user", "content": user},
         ]
 
-        ui.print_coder_header(self.cfg.model)
+        ui.print_coder_header(self.current_model)
         try:
             message = self.client.stream_chat(
                 messages, on_text=ui.print_coder_chunk, on_notice=ui.print_info
             )
+            # Mettre à jour le modèle courant si un autre modèle a été utilisé
+            if "_used_model" in message:
+                self.current_model = message["_used_model"]
+                # Afficher un message pour indiquer le changement de modèle
+                ui.print_info(f"Modèle du codeur changé pour: {self.current_model}")
         except LLMError as exc:
             return (
                 f"[codeur indisponible] {self.cfg.model} : {exc}. "

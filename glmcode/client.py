@@ -102,15 +102,20 @@ class LLMClient:
         retries = max(1, int(getattr(self.config, "max_retries", 3)))
 
         last: _ApiError | None = None
+        used_model = models[0]  # Modèle par défaut
         for idx, model in enumerate(models):
+            used_model = model  # Mettre à jour le modèle utilisé
             if idx > 0 and on_notice:
                 # C'est un modèle gratuit de model_coder_free.txt
                 on_notice(f"{models[0] if idx == 1 else models[idx-1]} indisponible — bascule sur modèle gratuit {model}")
             for attempt in range(retries):
                 try:
-                    return self._stream_once(
+                    result = self._stream_once(
                         model, messages, tools, on_text, cancel_event
                     )
+                    # Ajouter le modèle utilisé au résultat
+                    result["_used_model"] = used_model
+                    return result
                 except _ApiError as err:
                     last = err
                     if err.retryable and attempt < retries - 1:

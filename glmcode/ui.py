@@ -60,12 +60,14 @@ def print_banner(cfg) -> None:
     console.print(banner)
 
     if getattr(cfg, "coder", None) is not None and cfg.coder.enabled:
+        # Récupérer le modèle courant du codeur s'il est disponible
+        coder_model = getattr(cfg.coder, 'current_model', cfg.coder.model)
         rows = Text.assemble(
             ("cerveau  ", f"bold {BLUE}"),
             (f"{cfg.model}", FG),
             ("  ·  API Z.ai\n", DIM),
             ("codeur   ", f"bold {CYAN}"),
-            (f"{cfg.coder.model}", FG),
+            (f"{coder_model}", FG),
             ("  ·  API Openrouteur\n", DIM),
         )
     else:
