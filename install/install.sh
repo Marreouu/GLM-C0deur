@@ -2,14 +2,15 @@
 # ============================================================
 #  Installateur de glm (glmcode)
 #
-#  A executer par la personne qui recoit le code source :
-#    1. Verifie Python 3.11+
-#    2. Installe les dependances (requirements.txt)
-#    3. Cree un lanceur "glm" et l'ajoute au PATH utilisateur
+#  Ce script telecharge et installe directement glm depuis GitHub :
+#    1. Telecharge le depot depuis GitHub
+#    2. Verifie Python 3.11+
+#    3. Installe les dependances (requirements.txt)
+#    4. Cree un lanceur "glm" et l'ajoute au PATH utilisateur
 #       -> la commande "glm" devient utilisable depuis n'importe ou
 #
-#  IMPORTANT : ne pas deplacer / supprimer le dossier du projet
-#  apres l'installation (le lanceur pointe vers ce dossier).
+#  USAGE :
+#    curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/install.sh | bash
 # ============================================================
 
 set -e
@@ -20,16 +21,41 @@ write_ok()   { echo -e "    \e[32m$1\e[0m"; }
 write_warn() { echo -e "    \e[33m$1\e[0m"; }
 write_err()  { echo -e "    \e[31m$1\e[0m"; }
 
-# --- Racine du projet (dossier parent de ce script) ---------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# --- Configuration ---
+REPO_URL="https://github.com/Marreouu/GLM-C0deur"
+INSTALL_DIR="$HOME/.glm-code"
+TEMP_DIR="/tmp/glm-install"
 
 echo ""
 echo "  Installation de glm" -e "\e[35m"
-echo "  Source : $PROJECT_ROOT" -e "\e[90m"
+echo "  Source : $REPO_URL" -e "\e[90m"
 echo ""
 
-# --- 1. Verifier Python -------------------------------------
+# --- 1. Telecharger le depot GitHub -------------------------
+write_step "Telechargement du depot GitHub"
+if ! command -v git >/dev/null 2>&1; then
+    write_err "Git est requis mais non installe. Installez Git d'abord."
+    exit 1
+fi
+
+# Supprimer les anciens telechargements
+if [ -d "$TEMP_DIR" ]; then
+    rm -rf "$TEMP_DIR" 2>/dev/null || true
+fi
+if [ -d "$INSTALL_DIR" ]; then
+    rm -rf "$INSTALL_DIR" 2>/dev/null || true
+fi
+
+# Telecharger avec git
+git clone "$REPO_URL" "$TEMP_DIR"
+if [ $? -ne 0 ]; then
+    write_err "Echec du clonage du depot"
+    write_err "Verifiez votre connexion Internet et l'URL du depot"
+    exit 1
+fi
+write_ok "Depot telecharge avec succes"
+
+# --- 2. Verifier Python -------------------------------------
 write_step "Verification de Python"
 PYTHON_CMD=""
 for cmd in "python3" "python"; do
@@ -58,19 +84,25 @@ fi
 
 write_ok "Python $VERSION ($PYTHON_CMD)"
 
-# --- 2. Installer les dependances ---------------------------
-write_step "Installation des dependances (requirements.txt)"
+# --- 3. Installer les dependances ---------------------------
+write_step "Installation des dependances"
+cd "$TEMP_DIR"
 $PYTHON_CMD -m pip install --upgrade pip >/dev/null 2>&1
-$PYTHON_CMD -m pip install -r "$PROJECT_ROOT/requirements.txt"
+$PYTHON_CMD -m pip install -r "requirements.txt"
 if [ $? -ne 0 ]; then
     write_err "Echec de l'installation des dependances"
     exit 1
 fi
 write_ok "Dependances installees"
 
-# --- 3. Creer le lanceur "glm" ------------------------------
+# --- 4. Deplacer vers le dossier d'installation final --------
+write_step "Installation finale"
+mv "$TEMP_DIR" "$INSTALL_DIR"
+write_ok "Installe dans : $INSTALL_DIR"
+
+# --- 5. Creer le lanceur "glm" ------------------------------
 write_step "Creation de la commande glm"
-BIN_DIR="$PROJECT_ROOT/bin"
+BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$BIN_DIR"
 
 # Lanceur .sh : ajoute la racine au PYTHONPATH puis lance le module glmcode
@@ -83,7 +115,7 @@ EOF
 chmod +x "$BIN_DIR/glm"
 write_ok "Lanceur cree : $BIN_DIR/glm"
 
-# --- 4. Ajouter le dossier bin au PATH utilisateur ----------
+# --- 6. Ajouter le dossier bin au PATH utilisateur ----------
 write_step "Ajout de glm au PATH"
 SHELL_RC=""
 if [ -f "$HOME/.bashrc" ]; then
@@ -109,15 +141,15 @@ fi
 # Disponible aussi dans la session courante
 export PATH="$BIN_DIR:$PATH"
 
-# --- 4b. Installer la config globale (~/.glmcode/config.toml)
+# --- 7. Installer la config globale (~/.glmcode/config.toml)
 write_step "Installation de la configuration"
 CFG_DIR="$HOME/.glmcode"
 mkdir -p "$CFG_DIR"
 CFG_DST="$CFG_DIR/config.toml"
-CFG_SRC="$PROJECT_ROOT/config.toml"
+CFG_SRC="$INSTALL_DIR/config.toml"
 
 if [ ! -f "$CFG_SRC" ]; then
-    CFG_SRC="$PROJECT_ROOT/config.example.toml"
+    CFG_SRC="$INSTALL_DIR/config.example.toml"
 fi
 
 if [ -f "$CFG_SRC" ]; then
@@ -131,7 +163,7 @@ else
     write_warn "Aucun config.toml/config.example.toml a copier"
 fi
 
-# --- 5. Verification ----------------------------------------
+# --- 8. Verification ----------------------------------------
 write_step "Verification"
 if "$BIN_DIR/glm" --version >/dev/null 2>&1; then
     write_ok "glm operationnel"
@@ -140,8 +172,12 @@ else
     write_warn "Redemarrez votre terminal puis tapez : glm --version"
 fi
 
+# --- 9. Nettoyer les fichiers temporaires -------------------
+write_step "Nettoyage"
+rm -rf "$TEMP_DIR" 2>/dev/null || true
+
 echo ""
 echo "  Installation terminee !" -e "\e[32m"
-echo "  Redemarrez votre terminal puis tapez : glm" -e "\e[32m"
-echo "  (ne deplacez pas ce dossier, le lanceur pointe dessus)" -e "\e[90m"
+echo "  Redemarrez votre terminal et tapez : glm" -e "\e[32m"
+echo "  Installe dans : $INSTALL_DIR" -e "\e[90m"
 echo ""

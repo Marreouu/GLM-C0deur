@@ -4,11 +4,11 @@
 #  A EXECUTER SUR LA MACHINE OU glm EST CASSE.
 #  Ce script :
 #    1. Desinstalle glmcode de TOUS les Python trouves
-#    2. Supprime tous les glm.exe / glm.cmd / glm.bat residuels
-#    3. Reinstalle une SEULE commande "glm" propre (lanceur + PATH)
+#    2. Supprime tous les lanceurs glm residuels
+#    3. Telecharge et reinstalle proprement glm depuis GitHub
 #
-#  IMPORTANT : ne pas deplacer / supprimer ce dossier apres coup
-#  (le lanceur pointe dessus).
+#  USAGE :
+#    irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.ps1" | iex
 # ============================================================
 
 # On continue meme si une etape de nettoyage echoue
@@ -19,12 +19,14 @@ function Write-Ok   { param($m) Write-Host "    $m" -ForegroundColor Green }
 function Write-Warn { param($m) Write-Host "    $m" -ForegroundColor Yellow }
 function Write-Err  { param($m) Write-Host "    $m" -ForegroundColor Red }
 
-$ScriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectRoot = Split-Path -Parent $ScriptDir
+# --- Configuration ---
+$RepoUrl = "https://github.com/Marreouu/GLM-C0deur"
+$InstallDir = Join-Path $env:LOCALAPPDATA "glm-code"
+$TempDir = Join-Path $env:TEMP "glm-install"
 
 Write-Host ""
 Write-Host "  Remise a zero de glm" -ForegroundColor Magenta
-Write-Host "  Source : $ProjectRoot" -ForegroundColor DarkGray
+Write-Host "  Source : $RepoUrl" -ForegroundColor DarkGray
 Write-Host ""
 
 # ------------------------------------------------------------
@@ -88,11 +90,8 @@ foreach ($py in $pythons) {
 }
 $scriptDirs = $scriptDirs | Where-Object { $_ } | Select-Object -Unique
 
-$BinDir = Join-Path $ProjectRoot "bin"
-
 # On balaie TOUS les dossiers du PATH (User + Machine) + les dossiers de
-# scripts Python, et on supprime tout lanceur glm.* (y compris glm.ps1,
-# la cause du bug sous PowerShell).
+# scripts Python, et on supprime tout lanceur glm.*
 $pathDirs = New-Object System.Collections.Generic.List[string]
 foreach ($scope in @("User", "Machine")) {
     $pv = [Environment]::GetEnvironmentVariable("Path", $scope)
@@ -104,28 +103,54 @@ $pathDirs = $pathDirs | Where-Object { $_ } | Select-Object -Unique
 $removed = 0
 $launcherNames = @("glm.ps1", "glm.cmd", "glm.bat", "glm.exe", "glm-script.py")
 foreach ($d in $pathDirs) {
-    if ($d.TrimEnd('\') -ieq $BinDir.TrimEnd('\')) { continue }  # on garde notre futur lanceur
+    # On ne supprime pas notre futur lanceur
+    if ($d.TrimEnd('\') -ieq $InstallDir.TrimEnd('\')) { continue }
+    
     foreach ($name in $launcherNames) {
         $f = Join-Path $d $name
         if (Test-Path $f) {
             Remove-Item $f -Force -ErrorAction SilentlyContinue
-            if (-not (Test-Path $f)) { $removed++; Write-Ok "supprime : $f" }
-            else { Write-Warn "impossible de supprimer : $f" }
+            if (-not (Test-Path $f)) { 
+                $removed++; 
+                Write-Ok "supprime : $f" 
+            } else { 
+                Write-Warn "impossible de supprimer : $f" 
+            }
         }
     }
 }
 if ($removed -eq 0) { Write-Ok "aucun lanceur residuel" }
 
-# supprimer notre ancien dossier bin s'il existe
-$BinDir = Join-Path $ProjectRoot "bin"
-if (Test-Path $BinDir) { Remove-Item $BinDir -Recurse -Force -ErrorAction SilentlyContinue }
+# supprimer l'ancien dossier d'installation s'il existe
+if (Test-Path $InstallDir) { Remove-Item $InstallDir -Recurse -Force -ErrorAction SilentlyContinue }
 
 Write-Host ""
 Write-Host "  Nettoyage termine. Installation propre..." -ForegroundColor Magenta
 Write-Host ""
 
 # ------------------------------------------------------------
-# 3. Choisir un Python 3.11+ pour l'installation propre
+# 3. Telecharger le depot GitHub
+# ------------------------------------------------------------
+Write-Step "Telechargement du depot GitHub"
+try {
+    # Supprimer les anciens telechargements
+    if (Test-Path $TempDir) { Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue }
+    
+    # Telecharger avec git
+    & git clone $RepoUrl $TempDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Echec du clonage du depot"
+    }
+    Write-Ok "Depot telecharge avec succes"
+}
+catch {
+    Write-Err "Echec du telechargement : $($_.Exception.Message)"
+    Write-Err "Verifiez votre connexion Internet et l'URL du depot"
+    exit 1
+}
+
+# ------------------------------------------------------------
+# 4. Choisir un Python 3.11+ pour l'installation propre
 # ------------------------------------------------------------
 $ErrorActionPreference = "Stop"
 Write-Step "Selection d'un Python 3.11+"
@@ -141,33 +166,46 @@ if (-not $python) {
     Write-Err "Aucun Python 3.11+ trouve. Installez-le depuis https://python.org"
     exit 1
 }
-Write-Ok "Python retenu : $python"
+Write-Ok "Python retenu : $python ($($python --version 2>&1))"
 
 # ------------------------------------------------------------
-# 4. Installer les dependances
+# 5. Installer les dependances
 # ------------------------------------------------------------
-Write-Step "Installation des dependances (requirements.txt)"
+Write-Step "Installation des dependances"
+Set-Location $TempDir
 & $python -m pip install --upgrade pip *> $null
-& $python -m pip install -r (Join-Path $ProjectRoot "requirements.txt")
+& $python -m pip install -r "requirements.txt"
 if ($LASTEXITCODE -ne 0) { Write-Err "Echec de l'installation des dependances"; exit 1 }
 Write-Ok "Dependances installees"
 
 # ------------------------------------------------------------
-# 5. Creer le lanceur glm unique
+# 6. Deplacer vers le dossier d'installation final
+# ------------------------------------------------------------
+Write-Step "Installation finale"
+Move-Item $TempDir $InstallDir -Force
+Write-Ok "Installe dans : $InstallDir"
+
+# ------------------------------------------------------------
+# 7. Creer le lanceur glm unique
 # ------------------------------------------------------------
 Write-Step "Creation de la commande glm"
+$BinDir = Join-Path $InstallDir "bin"
 New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
+
+# Chemin absolu de l'interpreteur Python
+$pythonExe = (& $python -c "import sys; print(sys.executable)").Trim()
+
 $launcher = @"
 @echo off
-set "PYTHONPATH=$ProjectRoot;%PYTHONPATH%"
-"$python" -m glmcode %*
+set "PYTHONPATH=$InstallDir;%PYTHONPATH%"
+"$pythonExe" -m glmcode %*
 "@
 $launcherPath = Join-Path $BinDir "glm.cmd"
 Set-Content -Path $launcherPath -Value $launcher -Encoding ASCII
 Write-Ok "Lanceur cree : $launcherPath"
 
 # ------------------------------------------------------------
-# 6. Ajouter bin au PATH utilisateur (une seule fois)
+# 8. Ajouter bin au PATH utilisateur (une seule fois)
 # ------------------------------------------------------------
 Write-Step "Ajout de glm au PATH"
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -183,14 +221,14 @@ if ($already) {
 $env:Path = "$env:Path;$BinDir"
 
 # ------------------------------------------------------------
-# 6b. Installer la config globale (~/.glmcode/config.toml)
+# 9. Installer la config globale (~/.glmcode/config.toml)
 # ------------------------------------------------------------
 Write-Step "Installation de la configuration"
 $cfgDir = Join-Path $env:USERPROFILE ".glmcode"
 New-Item -ItemType Directory -Path $cfgDir -Force | Out-Null
 $cfgDst = Join-Path $cfgDir "config.toml"
-$cfgSrc = Join-Path $ProjectRoot "config.toml"
-if (-not (Test-Path $cfgSrc)) { $cfgSrc = Join-Path $ProjectRoot "config.example.toml" }
+$cfgSrc = Join-Path $InstallDir "config.toml"
+if (-not (Test-Path $cfgSrc)) { $cfgSrc = Join-Path $InstallDir "config.example.toml" }
 if (Test-Path $cfgSrc) {
     if (Test-Path $cfgDst) {
         Write-Ok "Config deja presente : $cfgDst (conservee)"
@@ -203,7 +241,7 @@ if (Test-Path $cfgSrc) {
 }
 
 # ------------------------------------------------------------
-# 7. Verification
+# 10. Verification
 # ------------------------------------------------------------
 Write-Step "Verification"
 try {
@@ -214,8 +252,12 @@ try {
     Write-Warn "Ouvrez un NOUVEAU terminal puis tapez : glm --version"
 }
 
+# Nettoyer les fichiers temporaires
+Write-Step "Nettoyage"
+Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Host ""
 Write-Host "  Termine ! Une seule commande glm est maintenant installee." -ForegroundColor Green
 Write-Host "  Ouvrez un NOUVEAU terminal et tapez : glm" -ForegroundColor Green
-Write-Host "  (ne deplacez pas ce dossier)" -ForegroundColor DarkGray
+Write-Host "  Installe dans : $InstallDir" -ForegroundColor DarkGray
 Write-Host ""
