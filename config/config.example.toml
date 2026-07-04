@@ -1,0 +1,291 @@
+# =====================================================================
+# Configuration de GLM Codeur - Fichier d'exemple
+# =====================================================================
+# 
+# Copiez ce fichier en config.toml pour personnaliser votre configuration
+# Utilisez des variables d'environnement pour les valeurs sensibles comme les clés API
+
+# Section principale du modèle de langage
+[llm]
+# Modèle à utiliser (ex: "gpt-4", "claude-3", "gemini-pro", "llama-2")
+model = "gpt-4"
+
+# Clé API pour accéder au service LLM
+# IMPORTANT: Ne mettez jamais votre clé en clair ! Utilisez des variables d'environnement
+# Exemple: api_key = "${GLM_API_KEY}"
+api_key = ""
+
+# URL de base de l'API (si vous utilisez un service personnalisé)
+api_base = "https://api.openai.com/v1"
+
+# Température pour la génération de texte (0.0 à 1.0)
+# Plus la température est élevée, plus les réponses seront créatives
+# 0.0 = très précis, 1.0 = très créatif
+temperature = 0.7
+
+# Nombre maximum de tokens dans la réponse
+max_tokens = 2000
+
+# Timeout en secondes pour les requêtes API
+timeout = 30
+
+# =====================================================================
+# Configuration des assistants
+# =====================================================================
+
+[assistants]
+# Assistant par défaut pour le codage
+default = "coding"
+
+# Liste des assistants disponibles
+[[assistants.profiles]]
+name = "coding"
+description = "Assistant spécialisé en développement logiciel"
+system_prompt = """
+Tu es un assistant de codage expert. Tu aides à écrire, refactorer, déboguer et optimiser du code.
+- Donne des réponses concises et précises
+- Propose des solutions pratiques
+- Explique les concepts clés
+- Suit les meilleures pratiques du langage utilisé
+- Fournit des exemples de code fonctionnels
+- Identifie les problèmes de sécurité et de performance
+"""
+
+[[assistants.profiles]]
+name = "debug"
+description = "Assistant spécialisé dans le débogage"
+system_prompt = """
+Tu es un expert en débogage. Tu aides à identifier et corriger les erreurs dans le code.
+- Analyse les erreurs systématiquement
+- Propose des solutions testées
+- Explique la cause racine des problèmes
+- Donne des conseils pour éviter les erreurs similaires
+- Fournit des étapes de reproduction claires
+- Suggère des tests unitaires pour éviter les régressions
+"""
+
+[[assistants.profiles]]
+name = "review"
+description = "Assistant pour la revue de code"
+system_prompt = """
+Tu es un expert en revue de code. Tu analyses la qualité, la sécurité et les performances du code.
+- Vérifie la conformité aux bonnes pratiques
+- Identifie les vulnérabilités potentielles
+- Suggère des améliorations de performance
+- Propose des refactorisations pour une meilleure lisibilité
+- Évalue la complexité cyclomatique
+- Vérifie la documentation et les commentaires
+"""
+
+[[assistants.profiles]]
+name = "explain"
+description = "Assistant pour l'explication de code"
+system_prompt = """
+Tu es un expert pédagogique. Tu expliques des concepts de programmation et de code de manière claire.
+- Utilise des analogies pour expliquer des concepts complexes
+- Structure tes explications de manière logique
+- Donne des exemples concrets et pertinents
+- Adapte ton niveau d'explication à l'utilisateur
+- Précise les prérequis nécessaires
+"""
+
+# =====================================================================
+# Configuration des outils
+# =====================================================================
+
+[tools]
+# Activer/désactiver certains outils
+enable_file_operations = true
+enable_web_search = true
+enable_code_execution = false
+
+# Configuration des outils de fichier
+[tools.file]
+# Extensions de fichiers à ignorer
+ignored_extensions = [".tmp", ".log", ".bak", ".swp", ".pyc", ".class", ".o", ".exe", ".dll", ".so"]
+
+# Taille maximale des fichiers à lire (en Mo)
+max_file_size = 10
+
+# Dossiers à exclure de l'analyse
+excluded_directories = [
+    "node_modules", 
+    ".git", 
+    "__pycache__", 
+    "venv", 
+    "env", 
+    "target", 
+    "build", 
+    "dist", 
+    ".idea", 
+    ".vscode", 
+    "coverage", 
+    ".DS_Store"
+]
+
+# Configuration des outils web
+[tools.web]
+# User agent personnalisé pour les requêtes HTTP
+user_agent = "GLM-Codeur/1.0"
+
+# Timeout pour les requêtes web (en secondes)
+timeout = 10
+
+# Nombre maximum de résultats de recherche
+max_results = 5
+
+# Moteurs de recherche à utiliser
+search_engines = ["google", "bing", "duckduckgo"]
+
+# =====================================================================
+# Configuration de l'interface
+# =====================================================================
+
+[ui]
+# Thème de couleur (dark, light, auto)
+theme = "dark"
+
+# Format de sortie des réponses (markdown, plain_text)
+output_format = "markdown"
+
+# Afficher les numéros de ligne dans les extraits de code
+show_line_numbers = true
+
+# Couleur syntaxique activée
+syntax_highlighting = true
+
+# Largeur maximale des lignes (0 = pas de limite)
+max_line_width = 80
+
+# Montrer les timestamps dans l'historique
+show_timestamps = true
+
+# =====================================================================
+# Configuration avancée
+# =====================================================================
+
+[advanced]
+# Journalisation (off, info, debug, verbose)
+log_level = "info"
+
+# Chemin du fichier de log (laisser vide pour désactiver)
+log_file = ""
+
+# Activer le mode développeur (pour le débogage)
+developer_mode = false
+
+# Nombre maximum de tokens dans le contexte
+context_window = 4000
+
+# Nombre de conversations à conserver dans l'historique
+max_history = 50
+
+# Nettoyer automatiquement l'historique ancien
+auto_cleanup_history = true
+
+# Sauvegarder automatiquement les conversations
+auto_save = true
+
+# Intervalle de sauvegarde automatique (en secondes)
+auto_save_interval = 300
+
+# =====================================================================
+# Configuration des raccourcis clavier
+# =====================================================================
+
+[shortcuts]
+# Raccourcis pour les actions courantes
+save = "Ctrl+S"
+new_conversation = "Ctrl+N"
+clear_screen = "Ctrl+L"
+help = "F1"
+settings = "Ctrl+,"
+search = "Ctrl+F"
+next_conversation = "Ctrl+Right"
+previous_conversation = "Ctrl+Left"
+copy_last_response = "Ctrl+C"
+toggle_theme = "Ctrl+T"
+
+# =====================================================================
+# Configuration des plugins
+# =====================================================================
+
+[plugins]
+# Activer les plugins
+enabled = true
+
+# Liste des plugins à charger
+[[plugins.enabled_plugins]]
+name = "git-integration"
+description = "Intégration avec Git pour analyser les changements de code"
+enabled = true
+
+[[plugins.enabled_plugins]]
+name = "docker-helper"
+description = "Aide à la gestion de conteneurs Docker"
+enabled = false
+
+[[plugins.enabled_plugins]]
+name = "database-query"
+description = "Assistant pour les requêtes de base de données"
+enabled = false
+
+# =====================================================================
+# Configuration de la sécurité
+# =====================================================================
+
+[security]
+# Exécuter du code de manière sécurisée (sandbox)
+safe_code_execution = true
+
+# Liste des commandes autorisées (vides = toutes autorisées)
+allowed_commands = []
+
+# Liste des commandes interdites
+blocked_commands = ["rm -rf", "format", "del /f", "powerShell"]
+
+# Valider les entrées utilisateur
+input_validation = true
+
+# Nettoyer les données sensibles des logs
+sanitize_logs = true
+
+# =====================================================================
+# Configuration des performances
+# =====================================================================
+
+[performance]
+# Utiliser le cache pour les réponses similaires
+use_cache = true
+
+# Taille maximale du cache (en Mo)
+max_cache_size = 100
+
+# Nettoyer le cache automatiquement
+auto_cleanup_cache = true
+
+# Compression des données de conversation
+compress_conversations = true
+
+# Limite de mémoire pour les conversations (en Mo)
+memory_limit = 500
+
+# =====================================================================
+# Configuration réseau
+# =====================================================================
+
+[network]
+# Proxy à utiliser (laisser vide pour aucun proxy)
+proxy = ""
+
+# Timeout pour les connexions réseau (en secondes)
+connection_timeout = 30
+
+# Nombre de tentatives en cas d'échec
+retry_attempts = 3
+
+# Délai entre les tentatives (en secondes)
+retry_delay = 1
+
+# Désactiver la vérification SSL (non recommandé)
+disable_ssl_verification = false
