@@ -1,0 +1,9 @@
+qwen/qwen3-coder:free
+cohere/north-mini-code:free
+poolside/laguna-xs.2:free
+deepseek/deepseek-r1-0528:free
+deepseek/deepseek-v3:free
+mistralai/devstral:free
+z-ai/glm-4.5-air:free
+nvidia/nemotron-3-ultra-550b-a55b:free
+openrouter/free

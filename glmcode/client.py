@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+from pathlib import Path
 from typing import Any, Callable
 
 import requests
@@ -45,6 +46,18 @@ class LLMClient:
     def __init__(self, config: Config):
         self.config = config
         self._session = requests.Session()
+        self._free_models = self._load_free_models()
+
+    def _load_free_models(self) -> list[str]:
+        """Charge la liste des modèles gratuits depuis model_coder_free.txt."""
+        try:
+            models_file = Path(__file__).parent.parent / "model" / "model_coder_free.txt"
+            if models_file.exists():
+                with models_file.open("r", encoding="utf-8") as f:
+                    return [line.strip() for line in f if line.strip()]
+        except Exception:
+            pass
+        return []
 
     @property
     def _headers(self) -> dict[str, str]:
@@ -70,19 +83,29 @@ class LLMClient:
           reessaie quelques fois.
         - Si le modele primaire reste indisponible, on bascule automatiquement
           sur `fallback_model` (ex. glm-4.5-flash).
+        - Si aucun des modèles principaux n'est disponible, on essaie les modèles
+          gratuits de model_coder_free.txt dans l'ordre.
         `on_notice` sert a informer l'utilisateur (tentatives, bascule).
         `cancel_event` : si fourni et arme, interrompt le stream (leve LLMCancelled).
         """
+        # Liste des modèles à essayer :
+        # 1. Le modèle principal
+        # 2. Si échec, essayer les modèles de model_coder_free.txt dans l'ordre
         models = [self.config.model]
-        fallback = getattr(self.config, "fallback_model", "")
-        if fallback and fallback != self.config.model:
-            models.append(fallback)
+        
+        # Ajouter les modèles gratuits de model_coder_free.txt (s'ils ne sont pas déjà dans la liste)
+        if self._free_models:
+            for free_model in self._free_models:
+                if free_model not in models:
+                    models.append(free_model)
+        
         retries = max(1, int(getattr(self.config, "max_retries", 3)))
 
         last: _ApiError | None = None
         for idx, model in enumerate(models):
             if idx > 0 and on_notice:
-                on_notice(f"{models[0]} indisponible — bascule sur {model}")
+                # C'est un modèle gratuit de model_coder_free.txt
+                on_notice(f"{models[0] if idx == 1 else models[idx-1]} indisponible — bascule sur modèle gratuit {model}")
             for attempt in range(retries):
                 try:
                     return self._stream_once(
