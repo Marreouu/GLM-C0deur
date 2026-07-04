@@ -471,7 +471,7 @@ class TUI:
         elif name == "/session":
             self._rich.print(
                 f"[{ui.DIM}]Session courante :[/] [bold {ui.CYAN}]{self.agent.session_id}[/]"
-                f"  [{ui.DIM2}](reprise : glmcode --resume {self.agent.session_id})[/]"
+                f"  [{ui.DIM2}](reprise : glm --resume {self.agent.session_id})[/]"
             )
         elif name == "/sessions":
             self._list_sessions()
