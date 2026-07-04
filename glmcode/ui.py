@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from prompt_toolkit import PromptSession
+from . import __version__
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
@@ -87,7 +88,7 @@ def print_banner(cfg) -> None:
     console.print(
         Panel(
             rows,
-            title="[bold]GLM Code[/]",
+            title=f"[bold]GLM Code - Version: {__version__}[/]",
             title_align="left",
             border_style=BLUE,
             padding=(1, 2),
