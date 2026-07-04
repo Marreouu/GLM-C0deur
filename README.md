@@ -1,6 +1,15 @@
 # GLM Codeur
 
-Un assistant de codage intelligent basé sur GLM, conçu pour vous aider dans vos projets de développement.
+Assistant de codage intelligent utilisant une architecture à deux niveaux (cerveau + codeur) pour le développement logiciel. Génération de code, débogage, revue de code et automatisation des tâches de programmation avec GLM/GPT-4.
+
+## 🚀 Fonctionnalités Principales
+
+- **Architecture cerveau/codeur** : Séparation des responsabilités entre conversation et codage technique
+- **Génération de code** intelligente avec modèles spécialisés
+- **Débogage méthodique** et analyse de code
+- **Skills personnalisables** pour automatiser les tâches répétitives
+- **Gestion de sessions** pour reprendre le travail plus tard
+- **Support multiplateforme** (Windows/Linux/macOS)
 
 ## Installation
 
