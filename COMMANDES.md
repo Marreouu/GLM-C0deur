@@ -403,6 +403,26 @@ Si une session ne se charge pas correctement :
 
 Les commandes suivantes sont utilisées au lancement de GLM Codeur, avant d'entrer dans l'interface interactive.
 
+### Affichage de l'aide complète
+Pour voir toutes les options disponibles en ligne de commande :
+```bash
+glm --help
+```
+
+**Résultat :**
+```
+usage: glmcode [-h] [--version] [--resume ID] [--continue] [--list-sessions]
+
+Assistant de codage terminal (API Z.ai / GLM).
+
+options:
+  -h, --help       show this help message and exit
+  --version        affiche la version
+  --resume ID      reprend la session <ID>
+  --continue       reprend la derniere session
+  --list-sessions  liste les sessions enregistrees puis quitte
+```
+
 ### `glm --resume ID`
 **Description:** Lance GLM et reprend une session spécifique
 **Usage:** `glm --resume <ID>`
@@ -444,6 +464,16 @@ glm --version                          # Affiche: glmcode 1.2.3
 ```bash
 glm --help                            # Affiche toutes les options de ligne de commande
 ```
+
+### 📋 Résumé des commandes en ligne de commande
+
+| Commande | Description | Abréviation | Exemple |
+|----------|-------------|-------------|---------|
+| `glm --help` | Affiche l'aide | | `glm --help` |
+| `glm --version` | Affiche la version | | `glm --version` |
+| `glm --resume ID` | Reprend une session spécifique | | `glm --resume abc123` |
+| `glm --continue` | Reprend la dernière session | `glm --cont` | `glm --continue` |
+| `glm --list-sessions` | Liste toutes les sessions | | `glm --list-sessions` |
 
 ## Exemples d'Utilisation Combinée
 
