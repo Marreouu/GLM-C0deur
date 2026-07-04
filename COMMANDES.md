@@ -258,6 +258,54 @@ glm
 glm --continue  # ou glm --resume <ID>
 ```
 
+## Architecture GLM Codeur : Cerveau et Codeur
+
+GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer les responsabilités :
+
+### 🧠 Le Cerveau (Orchestrateur)
+- **Rôle:** Modèle principal qui gère la conversation globale
+- **Fonctions:** 
+  - Comprend la demande utilisateur
+  - Décide de l'approche à adopter
+  - Utilise des outils pour lire des fichiers, exécuter des commandes
+  - Délègue les tâches de codage complexes au codeur
+- **Modèles utilisés:** GPT-4, Claude, etc. (modèles conversationnels)
+
+### 💻 Le Codeur (Spécialisé)
+- **Rôle:** Modèle dédié exclusivement au codage technique
+- **Fonctions:**
+  - Génère du code complet et structuré
+  - Modifie des fichiers avec précision
+  - Suit un formatage strict pour les réponses
+  - Optimisé pour les tâches de programmation
+- **Modèles utilisés:** Qwen2.5-Coder, CodeLlama, etc. (modèles codeurs)
+
+### 🔄 Comment ça fonctionne ensemble
+
+1. **Le cerveau analyse la demande** et décide s'il faut déléguer
+2. **Si c'est une tâche complexe** (création/modification de fichiers), le cerveau utilise l'outil `deleguer_codeur`
+3. **Le codeur génère** le code complet dans un format structuré
+4. **Le cerveau applique** les modifications ou demande confirmation
+5. **Le cerveau vérifie** le résultat et fait la synthèse
+
+### Exemple de workflow
+
+```bash
+# Demande complexe qui active les deux niveaux
+"Crée-moi une application web Flask avec authentification JWT et une base de données SQLite"
+
+# Le cerveau comprend la demande et délègue au codeur
+# Le codeur génère les fichiers : app.py, models.py, config.py, etc.
+# Le cerveau applique les modifications et vérifie que tout fonctionne
+```
+
+### Avantages de cette architecture
+
+- **Efficacité:** Le codeur est optimisé pour le codage technique
+- **Sécurité:** Le cerveau garde le contrôle sur les actions sensibles
+- **Flexibilité:** Peut fonctionner avec un seul modèle ou les deux
+- **Qualité:** Le codeur génère du code complet et bien structuré
+
 ## Bonnes Pratiques
 
 1. **Utilisez le mode `plan`** pour les tâches complexes avant de passer en mode `auto`
@@ -266,6 +314,7 @@ glm --continue  # ou glm --resume <ID>
 4. **Testez vos skills** dans des environnements de développement avant de les utiliser en production
 5. **Sauvegardez vos sessions** importantes avec `/session` et reprenez-les plus tard
 6. **Utilisez `glm --list-sessions`** pour voir toutes vos sessions disponibles
+7. **Comprenez la séparation cerveau/codeur** pour mieux utiliser les fonctionnalités
 
 ## Création de Skills Personnalisés
 
