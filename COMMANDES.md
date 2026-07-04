@@ -97,35 +97,270 @@ Quitte l'application.
 /exit
 ```
 
-## Système de Skills
+## 🎯 Système de Skills
 
-Les skills sont des fichiers Markdown réutilisables qui peuvent être invoqués avec la syntaxe `/nom-skill [argument]`.
+Les skills sont des fichiers Markdown réutilisables qui peuvent être invoqués avec la syntaxe `/nom-skill [argument]`. Ils permettent d'automatiser des tâches répétitives et d'appliquer des méthodes de travail éprouvées.
 
-### Structure d'un Skill
+### 📁 Structure d'un Skill
 
 Un skill est un fichier `.md` avec un frontmatter optionnel :
 
 ```markdown
 ---
-name: revue-code
-description: Revue de code approfondie
+name: nom-du-skill
+description: Description claire du skill
 ---
 
-<instructions injectées dans le contexte quand on invoque /revue-code>
+<instructions complètes injectées dans le contexte quand on invoque /nom-du-skill>
 ```
 
-### Emplacements des Skills
+### 🗂️ Emplacements des Skills (par ordre de priorité)
 
-1. `./skills/` (dossier du projet courant)
-2. `~/.glmcode/skills/` (skills globaux de l'utilisateur)
-3. Le pack intégré livré avec GLM Code
+1. **`./skills/`** - Skills du projet courant (priorité la plus haute)
+2. **`~/.glmcode/skills/`** - Skills globaux de l'utilisateur
+3. **Skills intégrés** - Livrés avec GLM Code
+4. **Skills de Claude Code** - Intégration optionnelle
 
-### Exemples d'utilisation
+### 🔗 Intégration avec les Skills de Claude Code
 
+GLM Codeur peut automatiquement détecter et utiliser les skills de Claude Code :
+
+#### Skills "Superpowers" (workflows généraux)
+- **Emplacement:** `~/.claude/plugins/cache/claude-plugins-official/superpowers/latest/skills/`
+- **Contenu:** Workflows de développement généraux provenant de Claude Code
+- **Activation:** Activé automatiquement si la configuration le permet
+
+#### Skills personnels de Claude Code
+- **Emplacement:** `~/.claude/skills/`
+- **Contenu:** Skills personnalisés créés par l'utilisateur pour Claude Code
+- **Activation:** Activé automatiquement si la configuration le permet
+
+#### Structure des skills de Claude Code
+GLM Codeur supporte deux formats :
+1. **Fichiers plats:** `./skills/nom.md` (format GLM Codeur)
+2. **Structure Claude:** `./skills/nom/SKILL.md` (format Claude Code)
+
+### 🛠️ Skills Intégrés Disponibles
+
+#### `/debug` - Débogage méthodique
+**Description:** Debug methodique d'un bug ou d'une erreur
+**Utilisation:** `/debug "mon code plante avec l'erreur X"`
+**Fonctionnement:**
+1. Reproduit le problème
+2. Formule une hypothèse précise
+3. Confirme la cause racine
+4. Applique la correction minimale
+5. Vérifie que c'est résolu
+
+#### `/explique` - Explication pédagogique
+**Description:** Explique clairement un fichier, une fonction ou un bout de code
+**Utilisation:** `/explique "que fait cette fonction ?"` ou `/explique fichier.py`
+**Fonctionnement:**
+1. Analyse le code concerné
+2. Donne une explication en une phrase
+3. Détaille chaque partie importante
+4. Signale les points subtils
+
+#### `/review-code` - Revue de code approfondie
+**Description:** Analyse et critique de code
+**Utilisation:** `/review-code mon_fichier.py`
+**Fonctionnement:**
+- Résumé du code
+- Points forts
+- Points faibles et améliorations
+- Bugs potentiels
+- Suggestions de refactorisation
+
+#### `/generate-code` - Génération de code
+**Description:** Génère du code Python selon une description
+**Utilisation:** `/generate-code "crée une fonction pour calculer la factorielle"`
+**Fonctionnement:**
+- Code fonctionnel et testable
+- Documentation avec docstrings
+- Bonnes pratiques Python
+- Gestion des erreurs
+
+#### `/refactor` - Refactorisation contrôlée
+**Description:** Refactorise du code sans changer son comportement
+**Utilisation:** `/ refactor vieux_code.py`
+**Fonctionnement:**
+1. Analyse le code existant
+2. Identifie les problèmes
+3. Applique des refactorisations petites et sûres
+4. Vérifie que rien n'est cassé
+
+#### `/tests` - Génération de tests
+**Description:** Génère des tests pour le code existant
+**Utilisation:** `/tests ma_fonction.py`
+**Fonctionnement:**
+- Génération de tests unitaires
+- Couverture des cas d'usage
+- Assertions appropriées
+
+### 🚀 Création de Skills Personnalisés
+
+#### 1. Créer un skill simple
+
+```markdown
+---
+name: mon-skill
+description: Description de mon skill personnalisé
+---
+
+Tu es un expert dans [domaine]. Quand on invoque ce skill, tu dois :
+
+1. Analyser la demande : {input}
+2. Appliquer une méthode spécifique
+3. Fournir un résultat structuré
+
+Exemple de réponse :
+- Analyse : ...
+- Solution : ...
+- Résultat : ...
 ```
-/revue-code app.py
-/test-unitaire fonction_calcul
+
+#### 2. Créer un skill complexe avec plusieurs étapes
+
+```markdown
+---
+name: analyse-securite
+description: Analyse de sécurité complète du code
+---
+
+Tu es un expert en sécurité applicative. Procède ainsi :
+
+1. **Lecture du code** : Lis le fichier fourni et comprends son fonctionnement
+2. **Analyse des vulnérabilités** : Recherche les problèmes de sécurité courants
+3. **Évaluation des risques** : Classe les problèmes par criticité
+4. **Recommandations** : Propose des solutions concrètes
+
+Code à analyser :
+```python
+{input}
 ```
+
+Format de réponse attendu :
+## Vulnérabilités détectées
+- [Problème] : Description et risque associé
+- [Problème] : Description et risque associé
+
+## Recommandations
+- [Solution] : Description de la solution
+- [Solution] : Description de la solution
+```
+
+#### 3. Emplacement des skills personnalisés
+
+**Skills du projet courant :**
+```bash
+mkdir -p ./skills
+# Créer ./skills/mon-skill.md
+```
+
+**Skills globaux :**
+```bash
+mkdir -p ~/.glmcode/skills
+# Créer ~/.glmcode/skills/mon-skill.md
+```
+
+### 📝 Exemples de Skills Personnalisés
+
+#### Skill d'analyse de performance
+```markdown
+---
+name: analyse-performance
+description: Analyse les performances du code et propose des optimisations
+---
+
+Tu es un expert en optimisation de code. Analyse le code fourni :
+
+1. Identifie les boucles inefficaces
+2. Repère les allocations mémoire inutiles
+3. Cherche les algorithmes sous-optimaux
+4. Propose des solutions concrètes
+
+Code :
+```python
+{input}
+```
+
+Rapport d'analyse :
+## Problèmes de performance
+- [Problème] : Ligne et impact
+- [Problème] : Ligne et impact
+
+## Optimisations recommandées
+- [Optimisation] : Description et gain attendu
+```
+
+#### Skill de documentation
+```markdown
+---
+name: documenter
+description: Génère une documentation complète pour un projet
+---
+
+Tu es un expert en documentation technique. Génère une documentation complète pour le projet.
+
+Procède ainsi :
+1. Analyse la structure du projet
+2. Documente chaque module/fichier
+3. Crée des exemples d'utilisation
+4. Génère un README complet
+
+Projet : {input}
+
+Documentation :
+```
+
+### 🔧 Gestion des Skills
+
+#### Lister tous les skills disponibles
+```bash
+/skills
+```
+
+#### Utiliser un skill
+```bash
+/mon-skill argument
+/revue-code fichier.py
+/generate-code "crée une classe pour gérer une todo list"
+```
+
+#### Priorité des skills
+1. Skills du projet courant (`./skills/`)
+2. Skills globaux (`~/.glmcode/skills/`)
+3. Skills intégrés
+4. Skills de Claude Code (si activé)
+
+Les skills avec le même nom : celui du projet courant écrase les autres.
+
+### 💡 Bonnes Pratiques pour les Skills
+
+1. **Nommage clair** : Utilisez des noms descriptifs et courts
+2. **Description précise** : Expliquez ce que fait le skill en une phrase
+3. **Instructions complètes** : Donnez toutes les étapes nécessaires
+4. **Utilisation de `{input}`** : Permet de personnaliser le skill
+5. **Formatage cohérent** : Utilisez un format de sortie standard
+6. **Testez vos skills** : Vérifiez qu'ils fonctionnent correctement
+7. **Documentez vos skills** : Créez un README pour vos skills personnalisés
+
+### 🔄 Intégration avec Claude Code
+
+Pour activer l'intégration avec les skills de Claude Code :
+
+1. **Vérifiez l'installation de Claude Code** :
+   ```bash
+   # Si Claude Code est installé, les dossiers suivants existent :
+   ls -la ~/.claude/skills/
+   ls -la ~/.claude/plugins/cache/claude-plugins-official/superpowers/
+   ```
+
+2. **Les skills seront automatiquement détectés** et disponibles via `/skills`
+
+3. **Conflits de noms** : Les skills de GLM Codeur ont priorité sur ceux de Claude Code
+
+4. **Structure compatible** : GLM Codeur peut utiliser les skills au format de Claude Code
 
 ## Modes de Fonctionnement
 
