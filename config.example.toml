@@ -3,7 +3,6 @@ api_key = "VOTRE_CLE_API_ZAI"
 base_url = "https://api.z.ai/api/paas/v4"
 # Cerveau : glm-4.5-flash (gratuit et fiable).
 model = "glm-4.5-flash"
-
 max_retries = 3
 
 temperature = 0.3
@@ -14,8 +13,7 @@ auto_approve = false
 [coder]
 enabled = true
 base_url = "https://openrouter.ai/api/v1"
-model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter
-
+model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter (switch auto si pas dispo)
 api_key = "VOTRE_CLE_API_OPENROUTER"
 
 # ─── Skills ───────────────────────────────────────────────────────────
