@@ -121,7 +121,7 @@ Une fois installé, GLM Codeur offre de nombreuses commandes internes pour contr
 
 ### Commandes principales :
 - `/help` - Affiche l'aide complète
-- `/reset` - Efface l'istorique de conversation
+- `/reset` - Efface l'historique de conversation
 - `/model <nom>` - Change le modèle LLM
 - `/mode [nom]` - Change le mode de fonctionnement (normal/auto/plan)
 
