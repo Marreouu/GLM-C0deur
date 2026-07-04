@@ -36,6 +36,22 @@ irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer
 curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.sh | bash
 ```
 
+## Désinstallation
+
+Si vous souhaitez désinstaller complètement GLM Codeur :
+
+**Windows:**
+```bash
+# Exécutez directement depuis PowerShell :
+irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.ps1" | iex
+```
+
+**Linux/macOS:**
+```bash
+# Exécutez directement depuis votre terminal :
+curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.sh | bash
+```
+
 ### Méthode manuelle (si vous avez déjà cloné le dépôt)
 
 1. **Clonez le dépôt :**
@@ -96,6 +112,12 @@ glm
 - Désinstalle GLM Codeur de tous les Python trouvés
 - Supprime tous les lanceurs résiduels
 - Télécharge et réinstalle proprement GLM Codeur depuis GitHub
+
+### `install/uninstall.ps1` / `install/uninstall.sh`
+- Désinstalle GLM Codeur de tous les Python trouvés
+- Supprime tous les lanceurs résiduels
+- Supprime le dossier d'installation
+- Supprime la configuration
 
 ## Dépannage
 
