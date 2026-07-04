@@ -115,26 +115,78 @@ curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uni
 - Messages d'erreur clairs avec solutions proposées
 - Mode silencieux/verbose optionnel
 
-## Prérequis
+## 🎮 Commandes Internes
 
-- Python 3.11 ou supérieur
-- pip (gestionnaire de paquets Python)
-- Git (pour le clonage du dépôt)
-- (Windows) .NET Framework 4.8+ (recommandé)
+Une fois installé, GLM Codeur offre de nombreuses commandes internes pour contrôler l'assistant. Consultez [COMMANDES.md](COMMANDES.md) pour la liste complète :
 
-## Configuration
+### Commandes principales :
+- `/help` - Affiche l'aide complète
+- `/reset` - Efface l'historique de conversation
+- `/model <nom>` - Change le modèle LLM
+- `/mode [nom]` - Change le mode de fonctionnement (normal/auto/plan)
 
-GLM Codeur utilise un fichier de configuration situé à `~/.glmcode/config.toml`. Si ce fichier n'existe pas, il sera créé automatiquement à partir de `config.example.toml`.
+### Commandes de skills :
+- `/skills` - Liste tous les skills disponibles
+- `/review-code` - Analyse et critique de code
+- `/generate-code` - Génère du code Python
+- `/debug` - Aide au débogage
+- `/explique` - Explication de concepts
 
-## Utilisation
+### Commandes de session :
+- `/session` - Affiche l'ID de la session courante
+- `/sessions` - Liste toutes les sessions enregistrées
+- `/resume [id]` - Reprend une session précédente
 
-Une fois installé, utilisez GLM Codeur simplement avec :
+## ⚙️ Configuration
 
+GLM Codeur utilise un fichier de configuration TOML. Consultez le dossier `config/` pour une documentation complète :
+
+- [config/README.md](config/README.md) - Documentation complète de la configuration
+- [config/QUICKSTART.md](config/QUICKSTART.md) - Guide de démarrage rapide
+- [config/config.example.toml](config/config.example.toml) - Fichier d'exemple complet
+
+### Configuration rapide :
 ```bash
-glm
+# Copier le fichier d'exemple
+cp config/config.example.toml ~/.glmcode/config.toml
+
+# Configurer votre clé API
+export GLM_API_KEY="votre_clé_api_ici"
 ```
 
-## Scripts disponibles
+## 🚀 Utilisation
+
+Une fois installé et configuré, utilisez GLM Codeur simplement :
+
+```bash
+# Démarrer l'assistant
+glm
+
+# Dans l'interface, tapez votre demande :
+"Bonjour, peux-tu m'aider avec mon projet Python ?"
+
+# Ou utilisez les commandes internes :
+/help
+/review-code mon_fichier.py
+/generate-code "crée une fonction pour calculer la factorielle"
+```
+
+## 📚 Skills Disponibles
+
+GLM Codeur inclut plusieurs skills prédéfinis :
+
+### Skills intégrés :
+- **`/review-code`** - Analyse et critique de code
+- **`/generate-code`** - Génère du code Python
+- **`/refactor-code`** - Refactorise du code existant
+- **`/debug`** - Aide au débogage
+- **`/explique`** - Explication de concepts
+- **`/tests`** - Génération de tests
+
+### Créer vos propres skills :
+Créez des fichiers Markdown dans `~/.glmcode/skills/` pour personnaliser les fonctionnalités.
+
+## 🛠️ Scripts disponibles
 
 ### `install/install.ps1` / `install/install.sh`
 - Installation avancée avec détection d'environnement
@@ -156,7 +208,14 @@ glm
 - Suppression de la configuration
 - Vérification finale
 
-## Dépannage
+## 📖 Documentation Complète
+
+- [COMMANDES.md](COMMANDES.md) - Toutes les commandes internes et skills
+- [config/README.md](config/README.md) - Configuration détaillée
+- [config/QUICKSTART.md](config/QUICKSTART.md) - Démarrage rapide
+- [config/config.example.toml](config/config.example.toml) - Fichier de configuration exemple
+
+## 🔧 Dépannage
 
 Si vous rencontrez des problèmes :
 
