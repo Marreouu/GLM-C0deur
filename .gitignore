@@ -16,7 +16,3 @@ demo/
 *.png
 conv.md
 
-# Dossier sensible
-01_RAPPORT/*.md
-01_RAPPORT/*.ps1
-01_RAPPORT/

@@ -601,5 +601,7 @@ Vous êtes un expert en Python. Répondez à la demande suivante avec du code bi
 
 Utilisation :
 ```
-/mon-skill Créer une fonction pour trier une liste
+/mon-skill Créer une fonction pour trier une liste salut
+
+fq dsfs
 ```
