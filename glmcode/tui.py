@@ -460,6 +460,27 @@ class TUI:
         arg = parts[1].strip() if len(parts) > 1 else ""
         if name in ("/exit", "/quit"):
             self.app.exit()
+        elif name == "/help":
+            self._rich.print("""[bold]Commandes[/]
+  /help            Affiche cette aide
+  /reset           Efface l'historique de la conversation
+  /model <nom>     Change le modele courant
+  /mode [nom]      Change de mode (normal / auto / plan)
+  /skills          Liste les skills disponibles
+  /<skill> [texte] Invoque un skill (ex. /revue-code app.py)
+  /session         Affiche l'ID de la session courante
+  /sessions        Liste les sessions enregistrees
+  /resume [id]     Reprend une session (derniere si aucun id)
+  /ping            Teste la connexion au backend
+  /exit, /quit     Quitte
+
+[bold]Modes[/] (bascule aussi avec [magenta]Shift+Tab[/])
+  normal   confirme chaque action (ecriture / commande)
+  auto     execute les actions sans demander
+  plan     lecture seule : propose un plan sans rien modifier
+
+Sinon, ecris simplement ta demande. L'assistant peut lire/ecrire des fichiers
+et lancer des commandes (selon le mode).""")
         elif name == "/reset":
             self.agent.reset()
             self._rich.print(f"[{ui.DIM}]Historique efface.[/]")
