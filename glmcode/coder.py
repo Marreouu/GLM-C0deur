@@ -40,6 +40,8 @@ class Coder:
         self.cfg = cfg
         self.client = LLMClient(cfg)
         self.current_model = cfg.model  # Modèle actuellement utilisé
+        self.last_working_model = None  # Dernier modèle qui a fonctionné
+        self.failed_models = set()  # Modèles qui ont échoué
 
     def implement(self, task: str, files: list[str], auto_apply: bool) -> str:
         """Genere et applique le code pour `task`. Renvoie un resume pour le cerveau."""
@@ -57,17 +59,32 @@ class Coder:
             {"role": "user", "content": user},
         ]
 
+        # Utiliser le dernier modèle qui a fonctionné s'il existe
+        if self.last_working_model:
+            self.current_model = self.last_working_model
+            ui.print_info(f"Utilisation du modèle qui a fonctionné précédemment: {self.current_model}")
+
         ui.print_coder_header(self.current_model)
         try:
             message = self.client.stream_chat(
-                messages, on_text=ui.print_coder_chunk, on_notice=ui.print_info
+                messages, on_text=ui.print_coder_chunk, on_notice=ui.print_info,
+                preferred_model=self.current_model
             )
             # Mettre à jour le modèle courant si un autre modèle a été utilisé
             if "_used_model" in message:
-                self.current_model = message["_used_model"]
-                # Afficher un message pour indiquer le changement de modèle
-                ui.print_info(f"Modèle du codeur changé pour: {self.current_model}")
+                used_model = message["_used_model"]
+                # Si le modèle a changé, mettre à jour le dernier modèle fonctionnel
+                if used_model != self.current_model:
+                    self.last_working_model = used_model
+                    self.current_model = used_model
+                    # Afficher un message pour indiquer le changement de modèle
+                    ui.print_info(f"Modèle du codeur changé pour: {self.current_model}")
+            else:
+                # Si aucun modèle n'est indiqué, considérer que le modèle actuel a fonctionné
+                self.last_working_model = self.current_model
         except LLMError as exc:
+            # Ajouter le modèle actuel à la liste des modèles échoués
+            self.failed_models.add(self.current_model)
             return (
                 f"[codeur indisponible] {self.cfg.model} : {exc}. "
                 "Reessaie dans un instant (les modeles gratuits OpenRouter sont "

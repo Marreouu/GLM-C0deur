@@ -76,6 +76,7 @@ class LLMClient:
         on_text: Callable[[str], None] | None = None,
         on_notice: Callable[[str], None] | None = None,
         cancel_event: threading.Event | None = None,
+        preferred_model: str | None = None,
     ) -> dict[str, Any]:
         """Envoie une requete en streaming, avec re-tentative et bascule modele.
 
@@ -87,11 +88,21 @@ class LLMClient:
           gratuits de model_coder_free.txt dans l'ordre.
         `on_notice` sert a informer l'utilisateur (tentatives, bascule).
         `cancel_event` : si fourni et arme, interrompt le stream (leve LLMCancelled).
+        `preferred_model` : si fourni, est utilisé en premier.
         """
         # Liste des modèles à essayer :
-        # 1. Le modèle principal
-        # 2. Si échec, essayer les modèles de model_coder_free.txt dans l'ordre
-        models = [self.config.model]
+        # 1. Le modèle préféré s'il est fourni
+        # 2. Le modèle principal
+        # 3. Si échec, essayer les modèles de model_coder_free.txt dans l'ordre
+        models = []
+        
+        # Ajouter le modèle préféré s'il est fourni
+        if preferred_model:
+            models.append(preferred_model)
+        
+        # Ajouter le modèle principal s'il n'est pas déjà dans la liste
+        if self.config.model not in models:
+            models.append(self.config.model)
         
         # Ajouter les modèles gratuits de model_coder_free.txt (s'ils ne sont pas déjà dans la liste)
         if self._free_models:
@@ -106,8 +117,13 @@ class LLMClient:
         for idx, model in enumerate(models):
             used_model = model  # Mettre à jour le modèle utilisé
             if idx > 0 and on_notice:
-                # C'est un modèle gratuit de model_coder_free.txt
-                on_notice(f"{models[0] if idx == 1 else models[idx-1]} indisponible — bascule sur modèle gratuit {model}")
+                # C'est un modèle de fallback ou gratuit
+                if preferred_model and model == preferred_model:
+                    on_notice(f"Utilisation du modèle préféré {model}")
+                elif model == self.config.model:
+                    on_notice(f"Modèle principal indisponible — bascule sur {model}")
+                else:
+                    on_notice(f"{models[idx-1]} indisponible — bascule sur modèle gratuit {model}")
             for attempt in range(retries):
                 try:
                     result = self._stream_once(
