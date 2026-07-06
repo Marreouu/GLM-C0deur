@@ -9,7 +9,9 @@ scrollable de prompt_toolkit.
 from __future__ import annotations
 
 import io
+import os
 import random
+import re
 import shutil
 import threading
 import time
@@ -31,6 +33,15 @@ _WORK_PHRASES = [
     (20, "y travaille"),
     (40, "presque fini"),
 ]
+
+# Dossiers ignores lors du parcours du projet (autocompletion '@fichier').
+_IGNORE_DIRS = {
+    ".git", "__pycache__", "node_modules", ".venv", "venv", ".idea",
+    ".mypy_cache", ".pytest_cache", ".ruff_cache", "dist", "build", ".eggs",
+}
+
+# Detecte les mentions '@chemin' dans un message (debut de mot uniquement).
+_MENTION_RE = re.compile(r"(?<!\S)@(\S+)")
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.completion import Completer, Completion
@@ -90,26 +101,88 @@ _BUILTIN_COMMANDS = [
 ]
 
 
-class _SlashCompleter(Completer):
-    """Autocompletion des commandes et skills quand la ligne commence par '/'."""
+def _iter_project_files(base: str = ".", limit: int = 5000) -> list[str]:
+    """Parcourt l'arborescence sous `base` pour l'autocompletion '@fichier'.
 
-    def __init__(self, entries):
-        # entries : liste de (nom, description)
+    Ignore les dossiers caches et les repertoires habituels (venv,
+    node_modules, .git...) afin de rester rapide meme sur de gros projets.
+    """
+    out: list[str] = []
+    for root, dirs, files in os.walk(base):
+        dirs[:] = sorted(d for d in dirs if d not in _IGNORE_DIRS and not d.startswith("."))
+        for f in sorted(files):
+            if f.startswith("."):
+                continue
+            rel = os.path.relpath(os.path.join(root, f), base)
+            out.append(rel.replace(os.sep, "/"))
+            if len(out) >= limit:
+                return out
+    return out
+
+
+class _MentionCompleter(Completer):
+    """Autocompletion des commandes '/' et des fichiers '@' (facon Claude Code).
+
+    - '/' en tout debut de ligne complete les commandes integrees et les skills.
+    - '@' n'importe ou dans la ligne (en debut de mot) propose les fichiers du
+      projet courant. Choisir une entree insere '@chemin/du/fichier' ; le
+      contenu du fichier est ensuite joint au message au moment de l'envoi
+      (voir TUI._expand_mentions).
+    """
+
+    def __init__(self, entries, base_dir: str = ".", cache_ttl: float = 5.0):
+        # entries : liste de (nom, description) pour les commandes slash.
         self.entries = entries
+        self.base_dir = base_dir
+        self.cache_ttl = cache_ttl
+        self._file_cache: list[str] | None = None
+        self._file_cache_time = 0.0
+
+    def _files(self) -> list[str]:
+        now = time.time()
+        if self._file_cache is None or now - self._file_cache_time > self.cache_ttl:
+            self._file_cache = _iter_project_files(self.base_dir)
+            self._file_cache_time = now
+        return self._file_cache
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor
-        if not text.startswith("/") or " " in text:
+
+        # Commandes slash : uniquement en tout debut de ligne.
+        if text.startswith("/") and " " not in text:
+            word = text[1:].lower()
+            for name, desc in self.entries:
+                if name.lower().startswith(word):
+                    yield Completion(
+                        f"/{name}",
+                        start_position=-len(text),
+                        display=f"/{name}",
+                        display_meta=desc,
+                    )
             return
-        word = text[1:].lower()
-        for name, desc in self.entries:
-            if name.lower().startswith(word):
-                yield Completion(
-                    f"/{name}",
-                    start_position=-len(text),
-                    display=f"/{name}",
-                    display_meta=desc,
-                )
+
+        # Mentions fichier '@' : declenchees n'importe ou dans la ligne, tant
+        # que le '@' demarre un "mot" (debut de ligne ou precede d'un espace).
+        at_pos = text.rfind("@")
+        if at_pos == -1:
+            return
+        if at_pos > 0 and not text[at_pos - 1].isspace():
+            return
+        partial = text[at_pos + 1:]
+        if " " in partial:
+            return  # la phrase continue apres le chemin : plus de completion
+
+        needle = partial.lower()
+        matches = [p for p in self._files() if needle in p.lower()]
+        # Priorite aux chemins qui commencent par la saisie, puis aux plus courts.
+        matches.sort(key=lambda p: (not p.lower().startswith(needle), len(p)))
+        for path in matches[:30]:
+            yield Completion(
+                f"@{path}",
+                start_position=-(len(text) - at_pos),
+                display=f"@{path}",
+                display_meta="fichier",
+            )
 
 _STYLE = Style.from_dict(
     {
@@ -235,7 +308,7 @@ class TUI:
             tail = f"  <style fg='{ui.YELLOW}'>defilement · ctrl+fin pour revenir en bas</style>"
         else:
             tail = (
-                f"  <style fg='{ui.DIM2}'>shift+tab mode · molette/pgup defiler · "
+                f"  <style fg='{ui.DIM2}'>shift+tab mode · @ fichier · molette/pgup defiler · "
                 f"ctrl+c annule</style>"
             )
         # Mettre à jour dynamiquement le subtitle avec le modèle du codeur
@@ -255,6 +328,43 @@ class TUI:
             out.append(("class:queued", f"   … +{len(self._queue) - 6} autres\n"))
         return out
 
+    # ─── Mentions '@fichier' ────────────────────────────────────────────
+    def _expand_mentions(self, text: str) -> str:
+        """Remplace les mentions '@chemin' par le contenu du fichier vise.
+
+        Le message affiche dans le transcript garde la mention telle quelle
+        (ex. '@src/main.py') ; seul le prompt reellement envoye a l'agent est
+        enrichi avec le contenu du fichier, comme dans Claude Code.
+        """
+        matches = list(_MENTION_RE.finditer(text))
+        if not matches:
+            return text
+
+        attachments = []
+        seen: set[str] = set()
+        for m in matches:
+            path = m.group(1).rstrip(".,;:!?)")
+            if not path or path in seen:
+                continue
+            full = os.path.join(".", path)
+            if not os.path.isfile(full):
+                continue
+            seen.add(path)
+            try:
+                with open(full, "r", encoding="utf-8", errors="replace") as fh:
+                    content = fh.read()
+            except OSError:
+                continue
+            if len(content) > 20000:
+                content = content[:20000] + "\n… (contenu tronque)"
+            attachments.append(
+                f"\n\n--- Fichier joint : {path} ---\n{content}\n--- fin de {path} ---"
+            )
+
+        if not attachments:
+            return text
+        return text + "".join(attachments)
+
     # ─── Construction de l'app ──────────────────────────────────────────
     def _build_app(self) -> None:
         # wrap_lines=False : rich a deja replie le texte a la largeur, donc
@@ -271,7 +381,7 @@ class TUI:
         )
         transcript = self._transcript_window
 
-        completer = _SlashCompleter(
+        completer = _MentionCompleter(
             _BUILTIN_COMMANDS + [(s.name, s.description) for s in self.skills.values()]
         )
         self.input = TextArea(
@@ -409,7 +519,10 @@ class TUI:
             self._handle_slash(text)
             return False
 
-        self._submit(text, f"\n[bold {ui.BLUE}]>[/] {text}", text)
+        # Les mentions '@fichier' sont resolues avant l'envoi au modele ; le
+        # transcript garde l'affichage brut tel que tape par l'utilisateur.
+        prompt_text = self._expand_mentions(text)
+        self._submit(prompt_text, f"\n[bold {ui.BLUE}]>[/] {text}", text)
         return False
 
     def _submit(self, prompt_text: str, display: str, label: str) -> None:
@@ -479,6 +592,10 @@ class TUI:
   /ping            Teste la connexion au backend
   /exit, /quit     Quitte
 
+[bold]Mentions fichier[/]
+  @chemin/fichier  Autocompletion + jonction du contenu au message envoye
+                   (tape '@' pour voir la liste des fichiers du projet)
+
 [bold]Modes[/] (bascule aussi avec [magenta]Shift+Tab[/])
   normal   confirme chaque action (ecriture / commande)
   auto     execute les actions sans demander
@@ -492,6 +609,8 @@ et lancer des commandes (selon le mode).""")
         elif name == "/clear":
             self.buffer_io.seek(0)
             self.buffer_io.truncate(0)
+        elif name == "/copy":
+            self._copy_transcript()
         elif name == "/skills":
             self._list_skills()
         elif name == "/session":

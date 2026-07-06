@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import os
+
 from prompt_toolkit import PromptSession
 from . import __version__
+from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
@@ -32,6 +35,11 @@ BAR = "#24283b"
 _PT_STYLE = Style.from_dict(
     {
         "bottom-toolbar": f"noreverse bg:{BAR} fg:{DIM}",
+        "completion-menu": f"bg:{BAR} fg:{FG}",
+        "completion-menu.completion": f"bg:{BAR} fg:{FG}",
+        "completion-menu.completion.current": f"bg:{BLUE} fg:{BG} bold",
+        "completion-menu.meta.completion": f"bg:{BAR} fg:{DIM}",
+        "completion-menu.meta.completion.current": f"bg:{BLUE} fg:{BG}",
     }
 )
 
@@ -81,6 +89,8 @@ def print_banner(cfg) -> None:
             ("\n", ""),
             ("/help", PURPLE),
             (" aide   ", DIM),
+            ("@fichier", PURPLE),
+            (" joindre   ", DIM),
             ("⇧⇥", PURPLE),
             (" changer de mode   ", DIM),
             ("/exit", PURPLE),
@@ -99,11 +109,87 @@ def print_banner(cfg) -> None:
     )
 
 
+# ─── Fichiers du projet (pour l'autocompletion '@fichier') ──────────────
+# Dossiers ignores lors du parcours (bruit habituel des projets Python/JS).
+_IGNORE_DIRS = {
+    ".git", "__pycache__", "node_modules", ".venv", "venv", ".idea",
+    ".mypy_cache", ".pytest_cache", ".ruff_cache", "dist", "build", ".eggs",
+}
+
+
+def list_files(base: str = ".", limit: int = 5000) -> list[str]:
+    """Liste les fichiers sous `base`, pour l'autocompletion des mentions '@'.
+
+    Ignore les dossiers caches et les repertoires habituels (venv, node_modules,
+    .git...) afin de rester rapide meme sur de gros projets.
+    """
+    out: list[str] = []
+    for root, dirs, files in os.walk(base):
+        dirs[:] = sorted(d for d in dirs if d not in _IGNORE_DIRS and not d.startswith("."))
+        for f in sorted(files):
+            if f.startswith("."):
+                continue
+            rel = os.path.relpath(os.path.join(root, f), base)
+            out.append(rel.replace(os.sep, "/"))
+            if len(out) >= limit:
+                return out
+    return out
+
+
+class FileMentionCompleter(Completer):
+    """Autocompletion des fichiers du projet quand l'utilisateur tape '@'.
+
+    Facon Claude Code : '@' declenche la liste des fichiers ; en choisir un
+    insere '@chemin/du/fichier' dans la ligne de saisie.
+    """
+
+    def __init__(self, base_dir: str = ".", cache_ttl: float = 5.0):
+        self.base_dir = base_dir
+        self.cache_ttl = cache_ttl
+        self._cache: list[str] | None = None
+        self._cache_time = 0.0
+
+    def _files(self) -> list[str]:
+        import time
+
+        now = time.time()
+        if self._cache is None or now - self._cache_time > self.cache_ttl:
+            self._cache = list_files(self.base_dir)
+            self._cache_time = now
+        return self._cache
+
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor
+        at_pos = text.rfind("@")
+        if at_pos == -1:
+            return
+        # Le '@' doit demarrer un "mot" (debut de ligne ou precede d'un espace).
+        if at_pos > 0 and not text[at_pos - 1].isspace():
+            return
+        partial = text[at_pos + 1:]
+        if " " in partial:
+            return  # la phrase continue apres le chemin : plus de completion
+
+        needle = partial.lower()
+        matches = [p for p in self._files() if needle in p.lower()]
+        matches.sort(key=lambda p: (not p.lower().startswith(needle), len(p)))
+        for path in matches[:30]:
+            yield Completion(
+                f"@{path}",
+                start_position=-(len(text) - at_pos),
+                display=f"@{path}",
+                display_meta="fichier",
+            )
+
+
 # ─── Saisie ─────────────────────────────────────────────────────────────
-def build_session(get_mode, cycle_mode, subtitle: str = "") -> PromptSession | None:
-    """Session de saisie avec Shift+Tab (changement de mode).
+def build_session(
+    get_mode, cycle_mode, subtitle: str = "", base_dir: str = "."
+) -> PromptSession | None:
+    """Session de saisie avec Shift+Tab (changement de mode) et '@fichier'.
 
     Le mode s'affiche a droite de la saisie (rprompt) et se met a jour en direct.
+    Taper '@' propose une autocompletion des fichiers du projet courant.
     Renvoie None si le terminal ne supporte pas prompt_toolkit (git bash, pipe).
     """
     kb = KeyBindings()
@@ -118,12 +204,16 @@ def build_session(get_mode, cycle_mode, subtitle: str = "") -> PromptSession | N
         color, label = _MODE_STYLE.get(mode, (FG, mode.upper()))
         chip = f"<style bg='{color}' fg='{BG}'><b>  {label}  </b></style>"
         mid = f"  <style fg='{BLUE}'>{subtitle}</style>" if subtitle else ""
-        hint = f"   <style fg='{DIM2}'>⇧⇥ mode · /help</style>"
+        hint = f"   <style fg='{DIM2}'>⇧⇥ mode · @ fichier · /help</style>"
         return HTML(chip + mid + hint)
 
     try:
         return PromptSession(
-            key_bindings=kb, bottom_toolbar=bottom_toolbar, style=_PT_STYLE
+            key_bindings=kb,
+            bottom_toolbar=bottom_toolbar,
+            style=_PT_STYLE,
+            completer=FileMentionCompleter(base_dir),
+            complete_while_typing=True,
         )
     except Exception:
         return None
