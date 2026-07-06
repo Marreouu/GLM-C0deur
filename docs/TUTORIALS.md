@@ -155,6 +155,22 @@ glm /mode normal
 /exit
 ```
 
+#### 3. Utilisation des mentions @fichier
+
+```bash
+# Lancer GLM Code
+glm
+
+# Analyser un fichier existant
+Analyse ce fichier @src/app.py et identifie les problèmes potentiels
+
+# Modifier un fichier spécifique
+Modifie ce fichier @utils.py pour optimiser la fonction calculate
+
+# Comparer plusieurs fichiers
+Compare ces fichiers @main.py @app.py et explique les différences
+```
+
 #### 4. Conversation avec GLM Code
 
 ```bash

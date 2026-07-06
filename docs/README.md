@@ -7,8 +7,12 @@
 - [Outils natifs](#outils-natifs)
 - [Système de skills](#système-de-skills)
 - [Mode orchestrateur](#mode-orchestrateur)
+- [Système de sélection de fichiers](#système-de-sélection-de-fichiers)
 - [Guide de développement](development.md)
 - [Guide de contribution](contributing.md)
+- [Fonctionnalités](FEATURES.md)
+- [Exemples d'utilisation](examples.md)
+- [Tutoriels](TUTORIALS.md)
 
 ## Architecture
 
@@ -278,6 +282,38 @@ Chaque outil expose :
     }
   }
 }
+```
+
+## Système de sélection de fichiers
+
+### Mentions @fichier
+
+GLM Code supporte les mentions `@fichier` pour joindre automatiquement le contenu des fichiers à vos messages. Cette fonctionnalité similaire à Claude Code permet de sélectionner facilement des fichiers du projet.
+
+#### Utilisation
+
+```bash
+# Taper @ pour voir la liste des fichiers disponibles
+@main.py
+
+# Le contenu du fichier sera automatiquement joint à votre message
+Analyse ce fichier @src/app.py et identifie les problèmes potentiels
+```
+
+#### Fonctionnalités
+
+- **Autocompletion** : Taper `@` déclenche la liste des fichiers du projet
+- **Recherche intelligente** : Les fichiers sont triés par pertinence
+- **Limites de sécurité** : Seuls les fichiers existants et lisibles sont joints
+- **Taille maximale** : Les fichiers de plus de 20Ko sont tronqués
+
+#### Configuration
+
+La fonctionnalité utilise les paramètres suivants :
+
+```toml
+# Ignorer certains répertoires lors de la recherche de fichiers
+ignore_dirs = [".git", "__pycache__", "node_modules", ".venv", "venv"]
 ```
 
 ## Système de skills

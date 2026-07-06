@@ -1,126 +1,84 @@
-# Changelog
+# Changelog - GLM Code
 
-All notable changes to GLM Code will be documented in this file.
+Tous les changements significatifs de GLM Code seront documentés dans ce fichier.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
+et ce projet suit la [sémantique des versions](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2024-12-XX
 
-### Added
-- Nouveau système de skills basé sur des fichiers Markdown
-- Support des skills Claude Code
-- Interface utilisateur améliorée avec Rich
-- Mode orchestrateur avec codeur délégué
-- Gestion des erreurs transitoires avec retries automatiques
-- Bascule automatique vers un modèle de secours
-
-### Changed
-- Refactorisation complète de l'architecture
-- Migration vers GLM-4.7 via API Z.ai
-- Amélioration de l'interface TUI
-- Optimisation du streaming des réponses
-
-### Fixed
-- Problèmes d'encodage avec les fichiers binaires
-- Gestion des chemins de fichiers sous Windows
-- Erreurs de timeout sur les commandes longues
-
-## [0.1.0] - 2024-07-03
-
-### Added
+### Ajouté
 - Version initiale de GLM Code
-- Interface CLI de base
-- Support des outils natifs (read_file, write_file, edit_file, list_dir, run_command)
-- Configuration via fichier TOML
-- Modes de travail : normal, auto, plan
-- Commandes slash (/help, /reset, /model, /mode, /skills, /ping, /exit)
-- Support de l'API Z.ai
-- Documentation utilisateur complète
+- Interface utilisateur TUI avec Rich et prompt_toolkit
+- Interface utilisateur CLI simple
+- Système de conversation avec LLM (GLM-4.7 via API Z.ai)
+- Outils natifs (read_file, write_file, edit_file, list_dir, run_command)
+- Système de skills basé sur des fichiers Markdown
+- Mode orchestrateur avec délégation à un modèle local
+- Gestion des sessions avec sauvegarde et reprise
+- Configuration centralisée avec TOML
+- Commandes slash (/help, /reset, /model, /mode, /skills, etc.)
+- Trois modes de travail (normal, auto, plan)
+- Intégration avec Git et Docker
+- Documentation complète
 
-### Technical
-- Architecture modulaire avec séparation des responsabilités
-- Client HTTP avec streaming et gestion des erreurs
-- Système de configuration flexible
-- Interface utilisateur avec Rich et prompt_toolkit
-- Support des variables d'environnement
-- Package Python installable
+### Modifié
+- Aucun
 
-## [0.0.1] - 2024-06-15
+### Supprimé
+- Aucun
 
-### Added
-- Proof of concept
-- Interface de base en ligne de commande
-- Support minimal des outils de fichiers
-- Configuration simple via variables d'environnement
+### Corrections
+- Aucun
 
----
+## [1.1.0] - 2024-12-XX
 
-## Prochaines versions
+### Ajouté
+- Fonctionnalité de sélection de fichiers avec @
+- Autocompletion des fichiers dans l'interface TUI
+- Support des mentions @fichier dans les messages
+- Intégration avec le système de complétion existant
+- Amélioration de l'expérience utilisateur pour la sélection de fichiers
 
-### [0.2.0] - Prochainement
+### Modifié
+- Amélioration de l'autocompletion dans l'interface CLI
+- Optimisation de la recherche de fichiers dans les grands projets
+- Mise à jour de la documentation pour inclure la nouvelle fonctionnalité
 
-#### Ajouté
-- [ ] Support de Git (git_commit, git_push, etc.)
-- [ ] Intégration avec les éditeurs de code (VS Code, Sublime Text)
-- [ ] Système de plugins
-- [ ] Support des modèles locaux (via Hugging Face)
-- [ ] Interface web
-- [ ] Tests unitaires complets
-- [ ] Documentation API
-- [ ] Internationalisation (anglais, espagnol, allemand)
+### Supprimé
+- Aucun
 
-#### Changé
-- [ ] Optimisation des performances
-- [ ] Amélioration de la gestion des erreurs
-- [ ] Refactorisation du codeur délégué
-- [ ] Support des workspaces multi-projets
-
-#### Corrigé
-- [ ] Gestion des fichiers volumineux
-- [ ] Problèmes de compatibilité avec les anciens systèmes
-- [ ] Erreurs de parsing des skills
-- [ ] Problèmes d'encodage Unicode
-
-### [0.3.0] - Prochainement
-
-#### Ajouté
-- [ ] Support des tests automatisés
-- [ ] Intégration CI/CD
-- [ ] Système de mise à jour automatique
-- [ ] Support des profils de configuration
-- [ ] Historique des conversations
-- [ ] Export des conversations
-- [ ] Support des modèles multimodaux
-- [ ] Interface mobile
-
-#### Changé
-- [ ] Refactorisation complète de l'architecture
-- [ ] Migration vers Python 3.12
-- [ ] Amélioration de la sécurité
-- [ ] Support des conteneurs Docker
-
-#### Corrigé
-- [ ] Tous les bugs connus
-- [ ] Problèmes de performance
-- [ ] Problèmes de compatibilité
-- [ ] Problèmes de documentation
+### Corrections
+- Correction des problèmes de performance dans la recherche de fichiers
+- Amélioration de la gestion des erreurs pour les fichiers non trouvés
+- Optimisation de l'affichage des mentions @fichier dans le transcript
 
 ---
 
 ## Format de version
 
-- **Major (X)**: Changements cassants ou nouvelles fonctionnalités majeures
-- **Minor (Y)**: Nouvelles fonctionnalités non cassantes
-- **Patch (Z)**: Corrections de bugs et petites améliorations
+- **Majeur** : Changements cassants ou nouvelles fonctionnalités majeures
+- **Mineur** : Nouvelles fonctionnalités non cassantes
+- **Patch** : Corrections de bugs et petites améliorations
 
-## Comment contribuer
+## Prochaines versions
 
-Pour suggérer des changements ou rapporter des bugs :
-1. Créez un issue sur GitHub
-2. Utilisez les labels appropriés
-3. Suivez le guide de contribution
+### [1.2.0] (Prochain)
+- Support des skills externes (GitHub, GitLab)
+- Amélioration du mode orchestrateur
+- Support des modèles multimodaux
+- Interface web expérimentale
 
-## Remerciements
+### [2.0.0] (À venir)
+- Refonte complète de l'architecture
+- Support multi-LLM
+- Plugin system
+- Marketplace de skills
 
-Merci à tous les contributeurs qui ont rendu ce projet possible !
+## Contribuer
+
+Les contributions sont les bienvenues ! Veuillez consulter le [guide de contribution](contributing.md).
+
+## Licence
+
+Ce projet est sous licence [MIT](LICENSE).

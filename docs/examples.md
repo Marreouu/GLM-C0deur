@@ -4,7 +4,22 @@ Ce document présente des exemples concrets d'utilisation de GLM Code dans diff�
 
 ## Exemples de base
 
-### 1. Création d'un projet Python
+### 1. Utilisation des mentions @fichier
+
+```bash
+# Lancer GLM Code
+glm
+
+# Analyser un fichier existant
+Analyse ce fichier @src/app.py et identifie les problèmes potentiels
+```
+
+GLM Code va :
+1. Lire automatiquement le fichier `src/app.py`
+2. Analyser le code pour les problèmes courants
+3. Proposer des améliorations basées sur le contenu
+
+### 2. Création d'un projet Python
 
 ```bash
 # Lancer GLM Code
