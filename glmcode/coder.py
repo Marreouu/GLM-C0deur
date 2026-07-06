@@ -85,6 +85,11 @@ class Coder:
         except LLMError as exc:
             # Ajouter le modèle actuel à la liste des modèles échoués
             self.failed_models.add(self.current_model)
+            # Essayer le dernier modèle qui a fonctionné s'il existe
+            if self.last_working_model and self.last_working_model not in self.failed_models:
+                self.current_model = self.last_working_model
+                ui.print_info(f"Réessai avec le modèle fonctionnel: {self.last_working_model}")
+                return self.implement(task, files, auto_apply)
             return (
                 f"[codeur indisponible] {self.cfg.model} : {exc}. "
                 "Reessaie dans un instant (les modeles gratuits OpenRouter sont "

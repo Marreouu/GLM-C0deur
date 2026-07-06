@@ -238,7 +238,12 @@ class TUI:
                 f"  <style fg='{ui.DIM2}'>shift+tab mode · molette/pgup defiler · "
                 f"ctrl+c annule</style>"
             )
-        sub = f"  <style fg='{ui.BLUE}'>{self.subtitle}</style>" if self.subtitle else ""
+        # Mettre à jour dynamiquement le subtitle avec le modèle du codeur
+        if hasattr(self.agent, 'coder') and self.agent.coder:
+            coder_model = self.agent.coder.current_model
+            sub = f"  <style fg='{ui.BLUE}'>{self.agent.config.model} + {coder_model}</style>"
+        else:
+            sub = f"  <style fg='{ui.BLUE}'>{self.subtitle}</style>" if self.subtitle else ""
         return HTML(f"⏵⏵ {chip}{sub}{reqs}{tail}")
 
     def _queue_text(self):
