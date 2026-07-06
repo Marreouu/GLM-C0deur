@@ -1,5 +1,5 @@
 # GLM Codeur
-( EN COURS D'AMELIORATIN CECI ET LA V0.1.0 EST UNE VERSION TEST )
+( EN COURS D'AMELIORATIN CECI EST LA V0.1.0 VERSION TEST )
 
 
 Assistant de codage intelligent utilisant une architecture à deux niveaux (cerveau + codeur) pour le développement logiciel. Génération de code, débogage, revue de code et automatisation des tâches de programmation avec GLM/GPT-4.
