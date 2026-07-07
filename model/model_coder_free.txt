@@ -1,4 +1,6 @@
-qwen/qwen3-coder:free
+qwen/qwen3-coder-480b-a35b:free
+openai/gpt-oss-20b:free
+nvidia/nemotron-nano-9b-v2:free
 cohere/north-mini-code:free
 poolside/laguna-xs.2:free
 deepseek/deepseek-r1-0528:free
@@ -6,4 +8,3 @@ deepseek/deepseek-v3:free
 mistralai/devstral:free
 z-ai/glm-4.5-air:free
 nvidia/nemotron-3-ultra-550b-a55b:free
-openrouter/free
