@@ -229,7 +229,7 @@ glm --help
 
 **Résultat :**
 ```
-usage: glmcode [-h] [--version] [--resume ID] [--continue] [--list-sessions]
+usage: glm [-h] [--version] [--resume ID] [--continue] [--list-sessions]
 
 Assistant de codage terminal (API Z.ai / GLM).
 
