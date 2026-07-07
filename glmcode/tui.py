@@ -521,8 +521,14 @@ class TUI:
 
         # Les mentions '@fichier' sont resolues avant l'envoi au modele ; le
         # transcript garde l'affichage brut tel que tape par l'utilisateur.
+        # Ajouter un saut de ligne uniquement si le tampon n'est pas vide et ne se termine pas deja par un saut de ligne.
+        current_content = self.buffer_io.getvalue()
+        if current_content and not current_content.endswith('\n'):
+            prefix = "\n"
+        else:
+            prefix = ""
         prompt_text = self._expand_mentions(text)
-        self._submit(prompt_text, f"\n[bold {ui.BLUE}]>[/] {text}", text)
+        self._submit(prompt_text, f"{prefix}[bold {ui.BLUE}]>[/] {text}", text)
         return False
 
     def _submit(self, prompt_text: str, display: str, label: str) -> None:
@@ -688,10 +694,18 @@ et lancer des commandes (selon le mode).""")
         for m in msgs[1:]:
             role = m.get("role")
             content = (m.get("content") or "").strip()
+            if not content:
+                continue
+            # Determine if we need a leading newline (same logic as in _accept)
+            current_content = self.buffer_io.getvalue()
+            if current_content and not current_content.endswith('\n'):
+                prefix = "\n"
+            else:
+                prefix = ""
             if role == "user":
-                self._rich.print(f"\n[bold {ui.BLUE}]>[/] {content}")
+                self._rich.print(f"{prefix}[bold {ui.BLUE}]>[/] {content}")
             elif role == "assistant" and content:
-                self._rich.print(content)
+                self._rich.print(f"{prefix}{content}")
         self._rich.print(f"[{ui.DIM2}]— fin de la reprise —[/]\n")
 
     def _run_skill(self, skill: Skill, arg: str) -> None:

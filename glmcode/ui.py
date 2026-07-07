@@ -40,6 +40,7 @@ _PT_STYLE = Style.from_dict(
         "completion-menu.completion.current": f"bg:{BLUE} fg:{BG} bold",
         "completion-menu.meta.completion": f"bg:{BAR} fg:{DIM}",
         "completion-menu.meta.completion.current": f"bg:{BLUE} fg:{BG}",
+        "motd": f"bg:{BAR} fg:{FG}",
     }
 )
 

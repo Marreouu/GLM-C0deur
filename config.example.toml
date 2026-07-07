@@ -13,7 +13,7 @@ auto_approve = false
 [coder]
 enabled = true
 base_url = "https://openrouter.ai/api/v1"
-model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter (switch auto si pas dispo)
+model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter ( switch auto si pas dispo)
 api_key = "VOTRE_CLE_API_OPENROUTER"
 
 # ─── Skills ───────────────────────────────────────────────────────────
@@ -22,3 +22,25 @@ api_key = "VOTRE_CLE_API_OPENROUTER"
 include_claude = true
 # Dossiers supplementaires de skills (.md ou <nom>/SKILL.md).
 dirs = []
+
+# ─── Runtime Architecture ────────────────────────────────────────
+[runtime]
+enabled = true
+shell_history_size = 1000
+file_watch_delay = 1.0
+git_watch_delay = 5.0
+background_workers = 4
+cache_max_size = 1000
+cache_default_ttl = 3600  # 1 heure en secondes
+
+# ─── Monitoring ─────────────────────────
+[monitoring]
+prometheus_enabled = false
+prometheus_port = 8000
+
+# ─── Auto Update ────────────────────────────────────────
+[auto_update]
+enabled = true
+check_on_start = true
+interval = 24  # hours
+channel = "stable"

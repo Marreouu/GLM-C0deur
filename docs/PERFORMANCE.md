@@ -312,6 +312,48 @@ def process_data():
 # python -m memory_profiler script.py
 ```
 
+#### 4. Profiling avec decorators personnalisés (GLM Code)
+
+GLM Code utilise un système de profiling personnalisé basé sur des decorateurs `@profile` et l'enregistrement de métriques via `record_metric`.
+
+```python
+from glmcode.performance_monitor import profile, record_metric
+
+@profile("nom_de_la_fonction")
+def ma_fonction(parametre):
+    try:
+        # Logique de la fonction
+        result = faire_quelque_chose(parametre)
+        
+        # Enregistrement de métriques de succès
+        record_metric("ma_fonction_success", 1, "count", {
+            "parametre": parametre,
+            "resultat_taille": len(str(result)) if result else 0
+        })
+        return result
+    except ValueError as e:
+        # Enregistrement de métriques d'erreur
+        record_metric("ma_fonction_value_error", 1, "count", {
+            "parametre": parametre,
+            "erreur": str(e)
+        })
+        raise
+    except Exception as e:
+        # Enregistrement de métriques d'erreur générique
+        record_metric("ma_fonction_error", 1, "count", {
+            "parametre": parametre,
+            "erreur_type": type(e).__name__,
+            "erreur_message": str(e)
+        })
+        raise
+```
+
+Ce système permet de :
+1. Mesurer le temps d'exécution de chaque fonction décorée
+2. Compter les succès et les échecs par type d'erreur
+3. Enregistrer des métriques personnalisées avec des dimensions contextuelles
+4. Surveiller les performances en temps réel via le performance monitor
+
 ## Tests de performance
 
 ### Tests unitaires de performance

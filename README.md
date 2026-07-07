@@ -1,5 +1,5 @@
 # GLM Codeur
-( EN COURS D'AMELIORATIN CECI ET LA V0.1.0 EST UNE VERSION TEST )
+( EN COURS D'AMELIORATIN CECI EST LA V0.1.0 VERSION TEST )
 Assistant de codage intelligent utilisant une architecture à deux niveaux (cerveau + codeur) pour le développement logiciel. Génération de code, débogage, revue de code et automatisation des tâches de programmation avec GLM/GPT-4.
 
 ## 🚀 Fonctionnalités Principales
@@ -289,6 +289,17 @@ GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer l
   - Optimisé pour les tâches de programmation
 - **Modèles utilisés:** Qwen2.5-Coder, CodeLlama, etc. (modèles codeurs)
 
+### 🔧 Architecture Runtime (Niveau Système)
+- **Rôle:** Gestionnaire de bas niveau pour les opérations système persistantes
+- **Fonctions:**
+  - Shells persistants (PowerShell, CMD, Bash, WSL) qui ne se recréent pas à chaque commande
+  - Surveillance en temps réel des fichiers, dossiers et dépôts Git
+  - Bus d'événements pour la communication inter-composants
+  - Traitement des tâches en arrière-plan pendant les temps de réflexion du LLM
+  - Gestion complète des processus système (PID, logs, redémarrage/arrêt)
+  - Cache en mémoire avec expiration et LRU
+- **Composants:** RuntimeManager, ShellManager, ProcessManager, WatchManager, EventBus, BackgroundTasks, RuntimeCache
+
 ### 🔄 Comment ça fonctionne ensemble
 
 1. **Le cerveau analyse la demande** et décide s'il faut déléguer
@@ -296,6 +307,7 @@ GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer l
 3. **Le codeur génère** le code complet dans un format structuré
 4. **Le cerveau applique** les modifications ou demande confirmation
 5. **Le cerveau vérifie** le résultat et fait la synthèse
+6. **L'architecture runtime** gère en arrière-plan les opérations système persistantes
 
 ### Exemple de workflow
 
@@ -306,6 +318,8 @@ GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer l
 # Le cerveau comprend la demande et délègue au codeur
 # Le codeur génère les fichiers : app.py, models.py, config.py, etc.
 # Le cerveau applique les modifications et vérifie que tout fonctionne
+# L'architecture runtime maintient les shells actifs, surveille les changements de fichiers,
+# et traite les tâches en arrière-plan pendant que le modèle "réfléchit"
 ```
 
 ### Avantages de cette architecture
@@ -314,6 +328,8 @@ GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer l
 - **Sécurité:** Le cerveau garde le contrôle sur les actions sensibles
 - **Flexibilité:** Peut fonctionner avec un seul modèle ou les deux
 - **Qualité:** Le codeur génère du code complet et bien structuré
+- **Performance:** Opérations système persistantes évitant les coûts de démarrage/arrêt répétés
+- **Réactivité:** Surveillance en temps réel et traitement en arrière-plan pour une expérience fluide
 
 ## 📖 Documentation Complète
 

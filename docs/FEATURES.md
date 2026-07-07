@@ -104,6 +104,75 @@ base_url = "http://localhost:11434/v1"
 model = "qwen2.5-coder:latest"
 ```
 
+### 7. Architecture Runtime (Niveau Système)
+
+#### Composants principaux
+- **RuntimeManager** : Coordinateur principal de tous les composants système
+- **EventBus** : Bus d'événements central pour la communication inter-composants
+- **ShellManager** : Gestionnaire de shells persistants (PowerShell, CMD, Bash, WSL)
+- **ProcessManager** : Gestionnaire de processus système avec suivi PID et logs
+- **WatchManager** : Surveillance en temps réel des fichiers, dossiers et dépôts Git
+- **BackgroundTasks** : Pool de workers pour l'exécution de tâches en arrière-plan
+- **RuntimeCache** : Cache en mémoire avec expiration et politique LRU
+
+#### Fonctionnalités clés
+- **Shells persistants** : Les shells ne sont pas recréés à chaque commande, réduisant considérablement l'overhead
+- **Surveillance en temps réel** : Détection immédiate des changements de fichiers, dossiers et Git
+- **Architecture événementielle** : Toute la communication se fait via des événements, pas de polling inutile
+- **Traitement en arrière-plan** : Indexation, calcul d'embeddings et autres tâches lourdes exécutés sans bloquer l'utilisateur
+- **Gestion de processus** : Suivi complet du cycle de vie des processus (démarrage, arrêt, redémarrage, logs)
+- **Cache intelligent** : Mise en cache efficace des résultats coûteux avec expiration automatique
+
+#### Configuration
+```toml
+[runtime]
+enabled = true
+shell_history_size = 1000
+file_watch_delay = 1.0
+git_watch_delay = 5.0
+background_workers = 4
+cache_max_size = 1000
+cache_default_ttl = 3600  # 1 heure en secondes
+```
+
+#### Utilisation programmatique
+```python
+from glmcode.runtime import (
+    initialize_runtime, 
+    get_shell_manager,
+    get_watch_manager,
+    get_background_tasks,
+    background_task
+)
+
+# Initialiser le runtime au démarrage de l'application
+initialize_runtime()
+
+# Obtenir un shell persistant
+shell = get_shell_manager().get_or_create_shell("powershell")
+output = shell.execute_command("Get-Process | Select-Object -First 5")
+
+# Surveiller un fichier pour les changements
+def on_file_changed(file_path):
+    print(f"Fichier modifié: {file_path}")
+    # Déclencher une reanalyse ou d'autres actions
+
+get_watch_manager().watch_file("src/config.py", on_file_changed)
+
+# Exécuter une tâche en arrière-plan
+@background_task("data_processing")
+def process_large_dataset(data):
+    # Traitement long qui ne bloque pas l'interface utilisateur
+    result = expensive_computation(data)
+    return result
+
+# Utiliser le task handler pour suivre la progression
+task_handle = process_large_dataset(large_data)
+if task_handle.status()["status"] == "completed":
+    result = task_handle.result()
+    print(f"Résultat: {result}")
+```
+
 ### 7. Gestion des sessions
 
 #### Sauvegarde automatique
