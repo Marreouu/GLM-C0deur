@@ -175,7 +175,7 @@ def print_diff_preview(path: str, content: str, lang: str = "text") -> None:
 
 #### Modes d'interface
 
-- **TUI (Terminal User Interface)** : Interface plein écran avec barre d'état
+- **TUI (Terminal User Interface)** : Interface plein écran inspirée de Claude Code avec barre d'entrée fixe, transcript déroulant, file d'attente dynamique et barre de statut contextuelle
 - **CLI (Command Line Interface)** : Interface ligne par ligne (fallback)
 
 ### 5. Système de configuration (`config.py`)

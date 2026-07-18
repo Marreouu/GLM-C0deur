@@ -7,10 +7,21 @@ Ce document présente les fonctionnalités principales de GLM Code, avec des exe
 ### 1. Interface utilisateur
 
 #### TUI (Terminal User Interface)
-- Interface plein écran avec Rich et prompt_toolkit
-- Navigation au clavier et à la souris
-- Historique des conversations scrollable
-- Modes visuels (normal/auto/plan)
+- Interface plein écran inspirée de Claude Code avec barre de saisie fixe en bas
+- Transcript scrollable au-dessus avec horodatage et préfixes distincts
+- File d'attente dynamique montrant les commandes en attente quand l'agent est occupé
+- Barre de statut indiquant le mode (NORMAL/AUTO/PLAN), compteur de requêtes et raccourcis
+- Raccourcis claviers : 
+  - `Entrée` : soumettre la saisie
+  - `Ctrl+C` : interruption (deux fois rapidement pour quitter)
+  - `Shift+Tab` : changer de mode
+  - `↑/↓` : navigation dans l'historique
+  - `Page Up/Page Down`, `Ctrl+↑/↓`, molette souris : défiler le transcript
+  - `Fin` : revenir au bas et reprendre le suivi automatique
+  - `@` : autocomplétion de fichiers
+  - `/` : autocomplétion de commandes et skills
+- Navigation souris : sélection de texte dans le transcript, défilement avec molette
+- Compatibilité avec le mode simple via variable d'environnement `GLMCODE_SIMPLE`
 
 #### CLI (Command Line Interface)
 - Interface simple pour les environnements limités

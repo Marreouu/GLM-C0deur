@@ -10,6 +10,7 @@ Assistant de codage intelligent utilisant une architecture à deux niveaux (cerv
 - **Skills personnalisables** pour automatiser les tâches répétitives
 - **Gestion de sessions** pour reprendre le travail plus tard
 - **Support multiplateforme** (Windows/Linux/macOS)
+- **Interface utilisateur moderne** : TUI inspirée de Claude Code avec barre fixe, transcript défilant et raccourcis intuitifs
 
 ## Installation
 
