@@ -30,6 +30,7 @@ from rich.markup import escape
 
 from . import ui
 from .cli import HELP_TEXT, _handle_slash  # reutilise la logique des commandes /
+from .client import LLMClient
 from .runtime import runtime_manager, get_watch_manager
 from .ui import BAR, BLUE, DIM, DIM2, FG, BG, YELLOW, FileMentionCompleter, _MODE_STYLE, _IGNORE_DIRS
 
@@ -74,6 +75,15 @@ class _MentionCompleter(Completer):
                     )
             return
         yield from self._files.get_completions(document, complete_event)
+
+
+def _format_tokens(count: int) -> str:
+    """Abrege les grands nombres : 1234 -> 1.2k, 1234567 -> 1.2M."""
+    if count < 1_000:
+        return str(count)
+    if count < 1_000_000:
+        return f"{count / 1_000:.1f}k".replace(".0k", "k")
+    return f"{count / 1_000_000:.1f}M".replace(".0M", "M")
 
 
 class _LineBufferedStdout:
@@ -267,7 +277,7 @@ class TUI:
             ("", "  "),
             (f"fg:{FG}", self.subtitle),
             ("", "   "),
-            (f"fg:{DIM}", f"⇅{self._req_count} req"),
+            (f"fg:{DIM}", f"⇅ {_format_tokens(LLMClient.total_tokens)} tokens"),
             ("", "   "),
             (
                 f"fg:{DIM2}",
@@ -479,6 +489,9 @@ class TUI:
             style=self._style(),
             full_screen=False,
             mouse_support=False,
+            # Redessine la barre periodiquement : sans cela le compteur de
+            # tokens ne bougerait qu'entre deux tours.
+            refresh_interval=0.5,
         )
 
         from rich.console import Console

@@ -43,6 +43,37 @@ class LLMClient:
     # Compteur global de requetes HTTP envoyees (tous modeles confondus).
     request_count = 0
 
+    # Consommation cumulee de la session, alimentee par le champ `usage` que
+    # renvoie l'API. Tous modeles confondus, cerveau et codeur compris.
+    prompt_tokens = 0
+    completion_tokens = 0
+    total_tokens = 0
+
+    # `stream_options` n'est pas supporte par toutes les passerelles ; on le
+    # desactive definitivement des qu'un serveur le refuse.
+    stream_options_supported = True
+
+    @classmethod
+    def reset_usage(cls) -> None:
+        cls.prompt_tokens = 0
+        cls.completion_tokens = 0
+        cls.total_tokens = 0
+
+    @classmethod
+    def _record_usage(cls, usage: dict[str, Any] | None) -> None:
+        """Cumule le bloc `usage` d'une reponse (ignore silencieusement s'il manque)."""
+        if not isinstance(usage, dict):
+            return
+        prompt = usage.get("prompt_tokens") or 0
+        completion = usage.get("completion_tokens") or 0
+        total = usage.get("total_tokens") or (prompt + completion)
+        try:
+            cls.prompt_tokens += int(prompt)
+            cls.completion_tokens += int(completion)
+            cls.total_tokens += int(total)
+        except (TypeError, ValueError):
+            pass
+
     def __init__(self, config: Config):
         self.config = config
         self._session = requests.Session()
@@ -163,6 +194,9 @@ class LLMClient:
             "max_tokens": self.config.max_tokens,
             "stream": True,
         }
+        if LLMClient.stream_options_supported:
+            # Sans cette option, l'API ne renvoie aucun `usage` en streaming.
+            payload["stream_options"] = {"include_usage": True}
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
@@ -187,6 +221,11 @@ class LLMClient:
                 code = str(resp.json().get("error", {}).get("code"))
             except Exception:
                 pass
+            # Passerelle qui ne connait pas stream_options : on l'abandonne
+            # et on laisse la boucle de re-tentative rejouer la requete.
+            if resp.status_code == 400 and "stream_options" in detail:
+                LLMClient.stream_options_supported = False
+                raise _ApiError(400, code, "stream_options refuse", retryable=True)
             # 429 (rate limit, y compris OpenRouter) et 5xx sont retryables.
             retryable = (
                 code in _RETRYABLE_CODES
@@ -219,6 +258,10 @@ class LLMClient:
                 chunk = json.loads(data)
             except json.JSONDecodeError:
                 continue
+
+            # Le bloc `usage` arrive dans un chunk final dont `choices` est
+            # vide : il faut le lire avant de filtrer sur `choices`.
+            LLMClient._record_usage(chunk.get("usage"))
 
             choices = chunk.get("choices") or []
             if not choices:

@@ -475,6 +475,78 @@ def test_console_du_tui_ne_laisse_pas_de_ligne_partielle(monkeypatch):
     assert isinstance(vue["console"].file, tui_module._LineBufferedStdout)
 
 
+def test_format_tokens():
+    """Le compteur de la barre de statut abrege les grands nombres."""
+    from glmcode.tui import _format_tokens
+
+    assert _format_tokens(0) == "0"
+    assert _format_tokens(999) == "999"
+    assert _format_tokens(1000) == "1k"
+    assert _format_tokens(1234) == "1.2k"
+    assert _format_tokens(999_999) == "1000k"   # cas limite assume
+    assert _format_tokens(1_200_000) == "1.2M"
+
+
+def test_usage_de_tokens_collecte_depuis_le_stream():
+    """Le bloc `usage` arrive dans un chunk final dont `choices` est vide.
+
+    C'est precisement le chunk que la boucle de streaming ecartait, d'ou un
+    compteur qui restait a zero.
+    """
+    import json
+
+    from glmcode.client import LLMClient
+
+    chunks = [
+        {"choices": [{"delta": {"content": "Bonjour"}}]},
+        {"choices": [{"delta": {"content": " le monde"}}]},
+        # Chunk final porteur de l'usage, sans aucun choix.
+        {"choices": [], "usage": {"prompt_tokens": 120, "completion_tokens": 30,
+                                  "total_tokens": 150}},
+    ]
+    lignes = [f"data: {json.dumps(c)}" for c in chunks] + ["data: [DONE]"]
+
+    class _FakeResponse:
+        status_code = 200
+        encoding = "utf-8"
+
+        def iter_lines(self, decode_unicode=False):
+            return iter(lignes)
+
+        def close(self):
+            pass
+
+    class _FakeSession:
+        def post(self, *args, **kwargs):
+            # L'option doit etre demandee, sinon l'API ne renvoie pas d'usage.
+            assert kwargs["json"].get("stream_options") == {"include_usage": True}
+            return _FakeResponse()
+
+    config = Mock()
+    config.api_key = "x"
+    config.base_url = "https://example.invalid/v1"
+    config.temperature = 0.3
+    config.max_tokens = 100
+    config.model = "modele-test"
+    config.max_retries = 1
+
+    client = LLMClient.__new__(LLMClient)
+    client.config = config
+    client._session = _FakeSession()
+    client._free_models = []
+
+    LLMClient.reset_usage()
+    try:
+        message = client._stream_once("modele-test", [], None, None, None)
+
+        assert message["content"] == "Bonjour le monde"
+        assert LLMClient.total_tokens == 150
+        assert LLMClient.prompt_tokens == 120
+        assert LLMClient.completion_tokens == 30
+    finally:
+        LLMClient.reset_usage()
+
+
 def run_all_tests():
     """Exécuter tous les tests."""
     print("=== Tests du TUI ===")
