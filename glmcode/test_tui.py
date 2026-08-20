@@ -667,6 +667,68 @@ def test_file_d_attente_rendu():
         assert len(ligne) <= largeur, ligne
 
 
+def test_barre_de_statut_ne_deborde_pas():
+    """La ligne de statut doit tenir dans la largeur, meme chargee.
+
+    Elle occupe une fenetre d'exactement une ligne : si elle deborde, le rendu
+    de toute la zone epinglee se decale.
+    """
+    import shutil
+
+    from glmcode import tools
+    from glmcode.client import LLMClient
+
+    agent = Mock()
+    agent.mode = "normal"
+    agent.cycle_mode = Mock()
+    agent.cancel_event = Mock()
+    agent.session_id = "test-session"
+    agent.config = Mock()
+    agent.config.model = "test-model"
+    agent.config.coder = None
+
+    tui = TUI(agent, subtitle="glm-4.5-flash")
+    largeur = shutil.get_terminal_size(fallback=(80, 24)).columns
+
+    LLMClient.reset_usage()
+    try:
+        LLMClient._record_usage({"prompt_tokens": 900_000,
+                                 "completion_tokens": 900_000,
+                                 "total_tokens": 1_800_000})
+        for shell in (None, ("powershell", "Get-ChildItem -Recurse -Filter *.py")):
+            tools._active_shell = shell
+            ligne = "".join(texte for _, texte in tui._status())
+            assert len(ligne) <= largeur, f"{len(ligne)} > {largeur} : {ligne}"
+    finally:
+        tools._active_shell = None
+        LLMClient.reset_usage()
+
+
+def test_cadre_de_saisie():
+    """Le cadre suit la largeur et se ferme correctement."""
+    import shutil
+
+    agent = Mock()
+    agent.mode = "normal"
+    agent.cycle_mode = Mock()
+    agent.cancel_event = Mock()
+    agent.session_id = "test-session"
+    agent.config = Mock()
+    agent.config.model = "test-model"
+    agent.config.coder = None
+
+    tui = TUI(agent)
+    largeur = shutil.get_terminal_size(fallback=(80, 24)).columns
+
+    haut = "".join(t for _, t in tui._cadre("haut"))
+    bas = "".join(t for _, t in tui._cadre("bas"))
+
+    assert len(haut) == largeur
+    assert len(bas) == largeur
+    assert haut.startswith(chr(0x256D)) and haut.endswith(chr(0x256E))
+    assert bas.startswith(chr(0x2570)) and bas.endswith(chr(0x256F))
+
+
 def run_all_tests():
     """Exécuter tous les tests."""
     print("=== Tests du TUI ===")

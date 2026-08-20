@@ -20,7 +20,7 @@ import time
 from prompt_toolkit import Application
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout import HSplit, Layout, Window
+from prompt_toolkit.layout import HSplit, Layout, VSplit, Window
 from prompt_toolkit.layout.containers import Float, FloatContainer
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.menus import CompletionsMenu
@@ -212,12 +212,27 @@ class TUI:
         )
 
         # Zone principale (colonne unique) : queue, input, status.
+        # Zone de saisie encadree : le cadre suit la largeur de la fenetre.
+        cadre_haut = Window(
+            height=1, content=FormattedTextControl(lambda: self._cadre("haut"))
+        )
+        cadre_bas = Window(
+            height=1, content=FormattedTextControl(lambda: self._cadre("bas"))
+        )
+        ligne_saisie = VSplit(
+            [
+                Window(width=1, char="│", style="class:cadre"),
+                self.input,
+                Window(width=1, char="│", style="class:cadre"),
+            ]
+        )
+
         main_column = HSplit(
             [
                 queue_win,
-                Window(height=1, char="─", style="class:sep"),
-                self.input,
-                Window(height=1, char="─", style="class:sep"),
+                cadre_haut,
+                ligne_saisie,
+                cadre_bas,
                 status,
             ]
         )
@@ -280,6 +295,7 @@ class TUI:
                 (f"fg:{YELLOW}", "o = oui · Entree ou n = non · ctrl+c annule"),
             ]
         segments = [
+            ("", "  "),
             (f"bg:{color} fg:{BG} bold", f" {label} "),
             ("", "  "),
             (f"fg:{FG}", self.subtitle),
@@ -287,20 +303,46 @@ class TUI:
             (f"fg:{DIM}", f"⇅ {_format_tokens(LLMClient.total_tokens)} tokens"),
         ]
 
+        largeur = shutil.get_terminal_size(fallback=(80, 24)).columns
+        occupe = sum(len(texte) for _, texte in segments)
+
         # Commande shell en cours : signalee en cyan juste apres les tokens.
+        # Elle est tronquee a la place reellement disponible, sinon une longue
+        # commande pousse la ligne au-dela du bord de la fenetre.
         shell = tools.active_shell()
         if shell is not None:
             nom, commande = shell
-            segments.append(("", "   "))
-            segments.append((f"fg:{CYAN} bold", f"⚡ {nom}"))
-            segments.append((f"fg:{CYAN}", f" {_shorten_command(commande)}"))
+            entete = f"⚡ {nom}"
+            dispo = largeur - occupe - 3 - len(entete) - 1
+            if dispo >= 8:
+                segments.append(("", "   "))
+                segments.append((f"fg:{CYAN} bold", entete))
+                segments.append((f"fg:{CYAN}", f" {_shorten_command(commande, dispo)}"))
+            elif largeur - occupe - 3 >= len(entete):
+                segments.append(("", "   "))
+                segments.append((f"fg:{CYAN} bold", entete))
+            occupe = sum(len(texte) for _, texte in segments)
 
-        segments.append(("", "   "))
-        segments.append((
-            f"fg:{DIM2}",
-            "shift+tab mode · @ fichier · molette/pgup defiler · ctrl+c annule",
-        ))
+        # Les rappels de raccourcis ne prennent que la place qui reste.
+        for rappels in (
+            "shift+tab mode · @ fichier · pgup defiler · ctrl+c annule",
+            "shift+tab mode · @ fichier · ctrl+c annule",
+            "shift+tab · @ · ctrl+c",
+        ):
+            if occupe + 3 + len(rappels) <= largeur:
+                segments.append(("", "   "))
+                segments.append((f"fg:{DIM2}", rappels))
+                break
         return segments
+
+    def _cadre(self, bord: str):
+        """Bord haut ou bas du cadre de saisie, ajuste a la largeur courante."""
+        largeur = max(4, shutil.get_terminal_size(fallback=(80, 24)).columns)
+        if bord == "haut":
+            trait = "╭" + "─" * (largeur - 2) + "╮"
+        else:
+            trait = "╰" + "─" * (largeur - 2) + "╯"
+        return [("class:cadre", trait)]
 
     # Nombre de messages listes avant de basculer sur un compteur.
     _QUEUE_VISIBLE = 5
@@ -363,6 +405,7 @@ class TUI:
         return Style.from_dict(
             {
                 "prompt": f"bold {BLUE}",
+                "cadre": DIM2,
                 "sep": DIM2,
                 "queued": DIM,
                 "completion-menu": f"bg:{BAR} fg:{FG}",
