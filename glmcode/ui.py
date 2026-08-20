@@ -40,7 +40,6 @@ _PT_STYLE = Style.from_dict(
         "completion-menu.completion.current": f"bg:{BLUE} fg:{BG} bold",
         "completion-menu.meta.completion": f"bg:{BAR} fg:{DIM}",
         "completion-menu.meta.completion.current": f"bg:{BLUE} fg:{BG}",
-        "motd": f"bg:{BAR} fg:{FG}",
     }
 )
 
@@ -98,16 +97,15 @@ def print_banner(cfg) -> None:
             (" quitter", DIM),
         )
     )
-    console.print(
-        Panel(
-            rows,
-            title=f"[bold]GLM Code - Version: {__version__}[/]",
-            title_align="left",
-            border_style=BLUE,
-            padding=(1, 2),
-            expand=False,
-        )
+    version_panel = Panel(
+        rows,
+        title=f"[bold]GLM Code - Version: {__version__}[/]",
+        title_align="left",
+        border_style=BLUE,
+        padding=(1, 2),
+        expand=False,
     )
+    console.print(version_panel)
 
 
 # ─── Fichiers du projet (pour l'autocompletion '@fichier') ──────────────

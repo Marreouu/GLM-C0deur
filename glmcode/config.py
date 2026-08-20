@@ -46,6 +46,14 @@ class CoderConfig:
 
 
 @dataclass
+class RuntimeConfig:
+    """Surveillance de fichiers en arriere-plan (reveil automatique de l'agent)."""
+
+    enabled: bool = True
+    file_watch_delay: float = 2.0
+
+
+@dataclass
 class Config:
     api_key: str = ""
     base_url: str = DEFAULT_BASE_URL
@@ -63,6 +71,8 @@ class Config:
     # Skills : dossiers supplementaires + integration des skills Claude Code.
     skills_dirs: list = field(default_factory=list)
     include_claude_skills: bool = False
+    # Surveillance de fichiers (section [runtime] optionnelle).
+    runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
 
 def _load_toml(path: Path) -> dict:
@@ -139,6 +149,16 @@ def load_config() -> Config:
         )
     ).lower() in ("1", "true", "yes", "on")
 
+    # Section [runtime] optionnelle (surveillance de fichiers en arriere-plan).
+    runtime_section = data.get("runtime", {}) if isinstance(data.get("runtime"), dict) else {}
+    runtime_cfg = RuntimeConfig(
+        enabled=str(
+            os.environ.get("GLMCODE_WATCH_ENABLED", runtime_section.get("enabled", True))
+        ).lower()
+        in ("1", "true", "yes", "on"),
+        file_watch_delay=float(runtime_section.get("file_watch_delay", 2.0)),
+    )
+
     return Config(
         api_key=str(api_key),
         base_url=str(pick("GLMCODE_BASE_URL", "base_url", DEFAULT_BASE_URL)),
@@ -153,4 +173,5 @@ def load_config() -> Config:
         coder=coder,
         skills_dirs=list(skills_dirs),
         include_claude_skills=include_claude_skills,
+        runtime=runtime_cfg,
     )

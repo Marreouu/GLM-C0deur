@@ -14,7 +14,6 @@ from .config import Config, load_config
 from .skills import compose_prompt, load_skills
 from .updater import UpdateManager
 from .version import Version
-from .motd import MotdManager
 
 HELP_TEXT = """[bold]Commandes[/]
   /help            Affiche cette aide
@@ -47,14 +46,13 @@ et lancer des commandes (selon le mode)."""
 
 # Instance globale du gestionnaire de mises a jour
 _updater: Optional[UpdateManager] = None
-_motd_manager: Optional[MotdManager] = None
 _update_check_thread: Optional[threading.Thread] = None
 _stop_update_check = threading.Event()
 
 
 def _initialize_update_system(config: Config) -> None:
     """Initialise le systeme de mise a jour automatique."""
-    global _updater, _motd_manager, _update_check_thread
+    global _updater, _update_check_thread
 
     # Initialiser l'uploader
     auto_update_config = getattr(config, 'auto_update', None)
@@ -69,10 +67,6 @@ def _initialize_update_system(config: Config) -> None:
 
     _updater = UpdateManager()
     _updater.update_channel = getattr(auto_update_config, 'channel', 'stable')
-
-    # Initialiser le gestionnaire MOTD
-    _motd_manager = MotdManager()
-    # L'URL du MOTD sera mise a jour depuis update.json lors de la prochaine verification
 
     # Demarrer la verificaton periodique si activee
     if getattr(auto_update_config, 'enabled', True) and getattr(auto_update_config, 'check_on_start', True):
@@ -109,7 +103,7 @@ def _stop_update_system() -> None:
 
 def _handle_slash(cmd: str, agent: Agent, skills: dict) -> bool:
     """Retourne True s'il faut continuer la boucle, False pour quitter."""
-    global _updater, _motd_manager
+    global _updater
 
     parts = cmd.strip().split(maxsplit=1)
     name = parts[0].lower()
@@ -366,18 +360,6 @@ def run(resume: str | None = None) -> int:
 
     ui.print_banner(cfg)
     session = ui.build_session(lambda: agent.mode, agent.cycle_mode, subtitle)
-
-    # Afficher le MOTD si disponible
-    if _motd_manager is not None:
-        motd_panel = _motd_manager.render_motd()
-        if motd_panel is not None:
-            # Dans le mode simple, on affiche simplement le MOTD
-            # Dans le mode TUI, il faudrait l'integrer dans l'affichage
-            # Pour l'instant, on l'affiche en mode simple uniquement
-            if os.environ.get("GLMCODE_SIMPLE") in ("1", "true"):
-                from rich.console import Console
-                console = Console()
-                console.print(motd_panel)
 
     while True:
         try:

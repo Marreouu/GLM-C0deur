@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 import threading
 import time
 
@@ -22,15 +23,15 @@ from prompt_toolkit.layout import HSplit, Layout, Window
 from prompt_toolkit.layout.containers import Float, FloatContainer
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.menus import CompletionsMenu
+from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import TextArea
 from rich.markup import escape
 
 from . import ui
 from .cli import HELP_TEXT, _handle_slash  # reutilise la logique des commandes /
-from .motd import get_motd_manager
 from .runtime import runtime_manager, get_watch_manager
-from .ui import BAR, BLUE, DIM, DIM2, FG, BG, FileMentionCompleter, _MODE_STYLE, _IGNORE_DIRS
+from .ui import BAR, BLUE, DIM, DIM2, FG, BG, YELLOW, FileMentionCompleter, _MODE_STYLE, _IGNORE_DIRS
 
 # Commandes integrees proposees par l'autocompletion '/'.
 _BUILTIN_COMMANDS = [
@@ -75,6 +76,64 @@ class _MentionCompleter(Completer):
         yield from self._files.get_completions(document, complete_event)
 
 
+class _LineBufferedStdout:
+    """Sortie qui n'emet que des lignes completes.
+
+    Le streaming ecrit par fragments (`console.print(chunk, end="")`) et rich
+    force un flush apres chacun. Or prompt_toolkit redessine la barre epinglee
+    apres chaque ecriture et, sur Windows, ne sait pas relire la colonne du
+    curseur : `responds_to_cpr` vaut False, donc le renderer la suppose a 0
+    apres son `reset()`. Un fragment laisse en milieu de ligne decale alors
+    tout le rendu suivant, et les decalages s'accumulent en escalier.
+
+    On retient donc les fragments jusqu'a la prochaine fin de ligne, et le
+    `flush()` est volontairement inerte.
+    """
+
+    def __init__(self, target=None):
+        # Resolu a chaque ecriture : sous patch_stdout, sys.stdout est
+        # remplace par le proxy de prompt_toolkit.
+        self._target = target if target is not None else (lambda: sys.stdout)
+        self._buffer = ""
+        self._lock = threading.Lock()
+
+    def write(self, data: str) -> int:
+        with self._lock:
+            self._buffer += data
+            if "\n" not in self._buffer:
+                return len(data)
+            head, _, self._buffer = self._buffer.rpartition("\n")
+            out = self._target()
+            out.write(head + "\n")
+            out.flush()
+        return len(data)
+
+    def flush(self) -> None:
+        # Inerte : flusher une ligne partielle est precisement ce qui casse
+        # le rendu de la zone epinglee.
+        pass
+
+    def close_line(self) -> None:
+        """Vide le reste du tampon en terminant proprement la ligne."""
+        with self._lock:
+            if not self._buffer:
+                return
+            rest, self._buffer = self._buffer, ""
+            out = self._target()
+            out.write(rest + "\n")
+            out.flush()
+
+    def isatty(self) -> bool:
+        return self._target().isatty()
+
+    def fileno(self) -> int:
+        return self._target().fileno()
+
+    @property
+    def encoding(self) -> str:
+        return getattr(self._target(), "encoding", "utf-8")
+
+
 class TUI:
     """Interface plein ecran avec barre epinglee (saisie + statut) en bas."""
 
@@ -97,7 +156,15 @@ class TUI:
         self._watch_id: str | None = None
         self._watch_mute_until = 0.0
         self._watch_mute_seconds = 3.0
-        self._motd_manager = None
+
+        # Confirmations : le thread de l'agent ne peut pas lire stdin, que
+        # prompt_toolkit tient en mode raw. Il se met en attente ici et c'est
+        # la ligne de saisie du bas qui recueille la reponse.
+        self._out: _LineBufferedStdout | None = None
+        self._awaiting_confirm = False
+        self._confirm_event = threading.Event()
+        self._confirm_result = False
+        ui.set_confirm_handler(self._confirm)
 
         self.input: TextArea
         self.app: Application | None = None
@@ -189,6 +256,12 @@ class TUI:
     # ─── Contenu dynamique ──────────────────────────────────────────────
     def _status(self):
         color, label = _MODE_STYLE.get(self.agent.mode, (FG, self.agent.mode.upper()))
+        if self._awaiting_confirm:
+            return [
+                (f"bg:{YELLOW} fg:{BG} bold", " CONFIRMER "),
+                ("", "  "),
+                (f"fg:{YELLOW}", "o = oui · Entree ou n = non · ctrl+c annule"),
+            ]
         return [
             (f"bg:{color} fg:{BG} bold", f" {label} "),
             ("", "  "),
@@ -211,6 +284,22 @@ class TUI:
             lines.append((f"fg:{DIM}", f"  {i}. {preview}\n"))
         return lines
 
+    def _confirm(self, question: str) -> bool:
+        """Point d'accroche de `ui.confirm()`, appele depuis le thread agent.
+
+        Bloque ce thread (pas la boucle de l'UI) jusqu'a ce que `_accept` ou
+        Ctrl+C renseigne la reponse saisie dans la barre du bas.
+        """
+        self._confirm_result = False
+        self._confirm_event.clear()
+        self._awaiting_confirm = True
+        if self.app is not None:
+            self.app.invalidate()
+        self._confirm_event.wait()
+        if self.app is not None:
+            self.app.invalidate()
+        return self._confirm_result
+
     def _scroll_by(self, direction: int) -> None:
         self._follow = direction >= 0
 
@@ -230,9 +319,14 @@ class TUI:
             }
         )
 
-    # ─── Saisie / envoi ─────────────────────────────────────────────────
+    # ─── Saisie / envoi ──────────────────────────────────────────────────
     def _accept(self, buf) -> bool:
         text = buf.text.strip()
+        if self._awaiting_confirm:
+            self._confirm_result = text.lower() in ("o", "oui", "y", "yes")
+            self._awaiting_confirm = False
+            self._confirm_event.set()
+            return False
         if not text:
             return False
         if self._busy:
@@ -257,6 +351,8 @@ class TUI:
             self._busy = False
             # Les ecritures que ce tour vient de faire ne doivent pas se
             # re-declencher elles-memes via la surveillance de fichiers.
+            if self._out is not None:
+                self._out.close_line()
             self._watch_mute_until = time.monotonic() + self._watch_mute_seconds
             if self._exit_requested:
                 if self.app is not None:
@@ -295,6 +391,13 @@ class TUI:
         return text + "".join(extras) if extras else text
 
     def _on_ctrl_c(self, event) -> None:
+        if self._awaiting_confirm:
+            self._confirm_result = False
+            self._awaiting_confirm = False
+            self._confirm_event.set()
+            ui.print_info("(action annulee)")
+            event.app.invalidate()
+            return
         if self._busy:
             self.agent.cancel_event.set()
             ui.print_info("Interruption demandee (Ctrl+C)...")
@@ -310,7 +413,7 @@ class TUI:
 
         threading.Timer(2.0, _reset).start()
 
-    # ─── Surveillance de fichiers (reveil automatique de l'agent) ───────
+    # ─── Surveillance de fichiers (reveil automatique de l'agent) ────────
     def _start_watch(self) -> None:
         cfg = getattr(self.agent, "config", None)
         runtime_cfg = getattr(cfg, "runtime", None)
@@ -364,9 +467,7 @@ class TUI:
 
     # ─── Lancement ───────────────────────────────────────────────────────
     def run(self) -> None:
-        self._motd_manager = get_motd_manager()
-        self._motd_manager.start_background_updates()
-        ui.print_banner(self.agent.config, motd_panel=self._motd_manager.render_motd())
+        ui.print_banner(self.agent.config)
         ui.console.print(
             f"[{DIM}]session {self.agent.session_id} · reprise possible avec "
             f"/resume ou glmcode --resume {self.agent.session_id}[/]"
@@ -382,20 +483,26 @@ class TUI:
 
         from rich.console import Console
 
+        self._out = _LineBufferedStdout()
         ui.set_console(
             Console(
+                file=self._out,
                 force_terminal=True,
-                legacy_windows=False
+                legacy_windows=False,
             )
         )
 
-        self._start_watch()
 
+        self._start_watch()
+        
         try:
-            self.app.run()
+            # raw=True : les impressions rich contiennent des sequences ANSI,
+            # que le proxy non-raw remplacerait par des '?'.
+            with patch_stdout(raw=True):
+                self.app.run()
         finally:
+            if self._out is not None:
+                self._out.close_line()
+            ui.set_confirm_handler(None)
             ui.reset_console()
             self._stop_watch()
-
-        if self._motd_manager is not None:
-            self._motd_manager.stop_background_updates()

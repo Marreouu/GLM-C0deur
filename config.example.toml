@@ -16,7 +16,7 @@ base_url = "https://openrouter.ai/api/v1"
 model = "qwen/qwen3-coder:free"   # Qwen3-Coder 480B, gratuit sur OpenRouter ( switch auto si pas dispo)
 api_key = "VOTRE_CLE_API_OPENROUTER"
 
-# ─── Skills ───────────────────────────────────────────────────────────
+# #─── Skills ───────────────────────────────────────────────────────────
 [skills]
 # Charge les skills de Claude Code s'ils sont presents (sinon ignore).
 include_claude = true
@@ -25,9 +25,11 @@ dirs = []
 
 # ─── Runtime Architecture ────────────────────────────────────────
 [runtime]
+# Surveillance du dossier courant : reveille l'agent automatiquement quand un
+# fichier change en dehors de l'assistant (edition manuelle, outil externe...).
 enabled = true
+file_watch_delay = 2.0   # secondes entre deux verifications du dossier
 shell_history_size = 1000
-file_watch_delay = 1.0
 git_watch_delay = 5.0
 background_workers = 4
 cache_max_size = 1000

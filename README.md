@@ -1,367 +1,163 @@
-# GLM Codeur
-( EN COURS D'AMELIORATIN CECI EST LA V0.1.0 VERSION TEST )
-Assistant de codage intelligent utilisant une architecture à deux niveaux (cerveau + codeur) pour le développement logiciel. Génération de code, débogage, revue de code et automatisation des tâches de programmation avec GLM/GPT-4.
+# GLM Code
 
-## 🚀 Fonctionnalités Principales
+Assistant de codage en terminal, propulsé par l'API Z.ai (GLM). Il lit et écrit
+des fichiers, lance des commandes shell et garde le contexte de la session, dans
+une interface inspirée de Claude Code.
 
-- **Architecture cerveau/codeur** : Séparation des responsabilités entre conversation et codage technique
-- **Génération de code** intelligente avec modèles spécialisés
-- **Débogage méthodique** et analyse de code
-- **Skills personnalisables** pour automatiser les tâches répétitives
-- **Gestion de sessions** pour reprendre le travail plus tard
-- **Support multiplateforme** (Windows/Linux/macOS)
-- **Interface utilisateur moderne** : TUI inspirée de Claude Code avec barre fixe, transcript défilant et raccourcis intuitifs
+> Version 0.1.0 — projet personnel en cours de développement.
+
+## Architecture cerveau / codeur
+
+Deux modèles se répartissent le travail :
+
+| Rôle | Modèle par défaut | Fournisseur | Coût |
+|------|-------------------|-------------|------|
+| **Cerveau** — conversation, décisions, appels d'outils | `glm-4.5-flash` | API Z.ai | gratuit |
+| **Codeur** — génération de code déléguée | `qwen/qwen3-coder:free` | OpenRouter | gratuit |
+
+Le codeur est optionnel : désactive la section `[coder]` pour tout faire passer
+par le cerveau.
 
 ## Installation
 
-### 🚀 Installation avancée (recommandée)
-
-**Installation directe depuis GitHub avec fonctionnalités avancées :**
-
-**Windows:**
-```bash
-# Installation complète avec détection d'environnement, gestion des erreurs et journalisation
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/install.ps1" | iex
-```
-
-**Linux/macOS:**
-```bash
-# Installation complète avec détection d'environnement, gestion des erreurs et rollback
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/install.sh | bash
-```
-
-### 🔧 Options d'installation avancée
-
-**Installation avec nettoyage complet (si vous avez des problèmes existants):**
-
-**Windows:**
-```bash
-# Désinstallation complète + réinstallation propre
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.ps1" | iex
-```
-
-**Linux/macOS:**
-```bash
-# Désinstallation complète + réinstallation propre avec rollback
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.sh" | bash
-```
-
-### 🗑️ Désinstallation complète
-
-**Windows:**
-```bash
-# Désinstallation complète avec suppression de tous les traces
-irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.ps1" | iex
-```
-
-**Linux/macOS:**
-```bash
-# Désinstallation complète avec rollback et nettoyage
-curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/uninstall.sh" | bash
-```
-
-### 📦 Méthode manuelle (si vous avez déjà cloné le dépôt)
-
-1. **Clonez le dépôt :**
-   ```bash
-   git clone https://github.com/Marreouu/GLM-C0deur.git
-   cd GLM-C0deur
-   ```
-
-2. **Installez GLM Codeur :**
-
-   **Windows:**
-   ```bash
-   # Double-cliquez sur install/install.bat
-   # Ou exécutez en PowerShell :
-   powershell -ExecutionPolicy Bypass -File install/install.ps1
-   ```
-
-   **Linux/macOS:**
-   ```bash
-   # Exécutez le script d'installation :
-   chmod +x install/install.sh
-   ./install/install.sh
-   ```
-
-3. **Vérifiez l'installation :**
-   ```bash
-   glm --version
-   ```
-
-## ⚙️ Fonctionnalités avancées de l'installation
-
-### 🖥️ Détection automatique de l'environnement
-- **Windows:** Détection des droits administratifs, version .NET, système d'exploitation
-- **Linux/macOS:** Détection de la distribution, version bash, paquets système requis
-
-### 🛡️ Installation robuste avec gestion des erreurs
-- Vérification de la connectivité Internet
-- Gestion des timeouts et des erreurs réseau
-- Journalisation détaillée de toutes les opérations
-- Points de restauration automatiques (rollback)
-
-### 🐍 Gestion avancée de Python
-- Détection automatique de toutes les installations Python
-- Proposition de choix si plusieurs versions disponibles
-- Vérification automatique des dépendances manquantes
-- Installation de pip si nécessaire
-
-### 📁 Installation propre et organisation
-- **Windows:** Installation dans Program Files (si admin) ou AppData (utilisateur)
-- **Linux/macOS:** Installation dans /usr/local (si sudo) ou ~/.glm-code (utilisateur)
-- Création de raccourcis dans le menu Démarrer (Windows)
-- Ajout au PATH système ou utilisateur
-
-### 🔍 Post-installation et vérification
-- Tests automatiques de l'installation
-- Configuration des variables d'environment
-- Création d'un fichier de log complet
-- Proposition d'ouverture d'un terminal pour test
-
-### 🎨 Interface utilisateur améliorée
-- Barre de progression pour les opérations longues
-- Couleurs et formatage pour une meilleure lisibilité
-- Messages d'erreur clairs avec solutions proposées
-- Mode silencieux/verbose optionnel
-
-## 🎮 Commandes Internes
-
-Une fois installé, GLM Codeur offre de nombreuses commandes internes pour contrôler l'assistant. Consultez [COMMANDES.md](COMMANDES.md) pour la liste complète :
-
-### Commandes principales :
-- `/help` - Affiche l'aide complète
-- `/reset` - Efface l'historique de conversation
-- `/model <nom>` - Change le modèle LLM
-- `/mode [nom]` - Change le mode de fonctionnement (normal/auto/plan)
-
-### Commandes de skills :
-- `/skills` - Liste tous les skills disponibles
-- `/review-code` - Analyse et critique de code
-- `/generate-code` - Génère du code Python
-- `/debug` - Aide au débogage
-- `/explique` - Explication de concepts
-
-### Commandes de session :
-- `/session` - Affiche l'ID de la session courante
-- `/sessions` - Liste toutes les sessions enregistrées
-- `/resume [id]` - Reprend une session précédente
-
-## ⚙️ Configuration
-
-GLM Codeur utilise un fichier de configuration TOML. Consultez le dossier `config/` pour une documentation complète :
-
-- [config/README.md](config/README.md) - Documentation complète de la configuration
-- [config/QUICKSTART.md](config/QUICKSTART.md) - Guide de démarrage rapide
-- [config/config.example.toml](config/config.example.toml) - Fichier d'exemple complet
-
-### Configuration rapide :
-```bash
-# Copier le fichier d'exemple
-cp config/config.example.toml ~/.glmcode/config.toml
-
-# Configurer votre clé API
-export GLM_API_KEY="votre_clé_api_ici"
-```
-
-## 🚀 Utilisation
-
-Une fois installé et configuré, utilisez GLM Codeur simplement :
+Python 3.11 ou plus récent est requis.
 
 ```bash
-# Démarrer l'assistant
-glm
-
-# Dans l'interface, tapez votre demande :
-"Bonjour, peux-tu m'aider avec mon projet Python ?"
-
-# Ou utilisez les commandes internes :
-/help
-/review-code mon_fichier.py
-/generate-code "crée une fonction pour calculer la factorielle"
+git clone https://github.com/<utilisateur>/<depot>.git
+cd <depot>
+pip install -e .
 ```
 
-## 📚 Skills Disponibles
+Cela installe les dépendances et expose la commande `glm`.
 
-GLM Codeur inclut plusieurs skills prédéfinis :
+Pour installer seulement les dépendances, sans le point d'entrée :
 
-### Skills intégrés :
-- **`/review-code`** - Analyse et critique de code
-- **`/generate-code`** - Génère du code Python
-- **`/refactor-code`** - Refactorise du code existant
-- **`/debug`** - Aide au débogage
-- **`/explique`** - Explication de concepts
-- **`/tests`** - Génération de tests
-
-### Créer vos propres skills :
-Créez des fichiers Markdown dans `~/.glmcode/skills/` pour personnaliser les fonctionnalités.
-
-## 🛠️ Scripts disponibles
-
-### `install/install.ps1` / `install/install.sh`
-- Installation avancée avec détection d'environnement
-- Téléchargement direct du dépôt GitHub
-- Gestion robuste des erreurs et rollback
-- Configuration automatique du PATH
-- Création de raccourcis et lanceurs
-
-### `install/nettoyer-et-installer.ps1` / `install/nettoyer-et-installer.sh`
-- Désinstallation complète de toutes les versions existantes
-- Suppression de tous les lanceurs résiduels
-- Téléchargement et réinstallation propre depuis GitHub
-- Restauration automatique en cas d'erreur
-
-### `install/uninstall.ps1` / `install/uninstall.sh`
-- Désinstallation complète de GLM Codeur
-- Suppression de tous les lanceurs résiduels
-- Suppression du dossier d'installation
-- Suppression de la configuration
-- Vérification finale
-
-## 💾 Commandes en Ligne de Commande
-
-Les commandes suivantes sont utilisées au lancement de GLM Codeur :
-
-### `glm --help`
-Affiche l'aide complète des commandes en ligne de commande :
 ```bash
-glm --help
+pip install -r requirements.txt
 ```
 
-**Résultat :**
-```
-usage: glm [-h] [--version] [--resume ID] [--continue] [--list-sessions]
+## Configuration
 
-Assistant de codage terminal (API Z.ai / GLM).
+Copie le modèle de configuration et renseigne ta clé API :
 
-options:
-  -h, --help       show this help message and exit
-  --version        affiche la version
-  --resume ID      reprend la session <ID>
-  --continue       reprend la derniere session
-  --list-sessions  liste les sessions enregistrees puis quitte
-```
-
-### `glm --version`
-Affiche la version de GLM Codeur :
 ```bash
+cp config.example.toml config.toml
+```
+
+```toml
+[zai]
+api_key = "ta-cle-zai"
+model = "glm-4.5-flash"
+
+[coder]
+enabled = true
+api_key = "ta-cle-openrouter"
+model = "qwen/qwen3-coder:free"
+```
+
+Les fichiers de configuration sont cherchés dans cet ordre :
+
+1. les variables d'environnement `GLMCODE_*` (et `ZAI_API_KEY`) ;
+2. `./config.toml` dans le dossier courant ;
+3. `~/.glmcode/config.toml`.
+
+`config.toml` est exclu du dépôt par `.gitignore` — ta clé API ne part jamais
+sur GitHub.
+
+## Utilisation
+
+```bash
+glm                      # démarre l'assistant dans le dossier courant
+glm --continue           # reprend la dernière session
+glm --resume <ID>        # reprend une session précise
+glm --list-sessions      # liste les sessions enregistrées
 glm --version
 ```
 
-### `glm --resume ID`
-Reprend une session spécifique :
-```bash
-glm --resume abc123
+### Modes
+
+On bascule d'un mode à l'autre avec <kbd>Shift</kbd>+<kbd>Tab</kbd>, ou avec
+`/mode <nom>`.
+
+| Mode | Comportement |
+|------|--------------|
+| `normal` | demande confirmation avant chaque écriture ou commande |
+| `auto` | exécute les actions sans demander |
+| `plan` | lecture seule : propose un plan sans rien modifier |
+
+### Commandes
+
+| Commande | Effet |
+|----------|-------|
+| `/help` | affiche l'aide |
+| `/reset` | efface l'historique de la conversation |
+| `/model <nom>` | change le modèle courant |
+| `/mode [nom]` | change de mode |
+| `/skills` | liste les skills disponibles |
+| `/<skill> [texte]` | invoque un skill (ex. `/revue-code app.py`) |
+| `/session`, `/sessions`, `/resume [id]` | gestion des sessions |
+| `/ping` | teste la connexion au backend |
+| `/update`, `/check-update`, `/version` | mises à jour |
+| `/exit`, `/quit` | quitte |
+
+### Joindre un fichier
+
+Tape `@` pour ouvrir l'autocomplétion des fichiers du projet. Le contenu du
+fichier mentionné est joint au message envoyé :
+
+```
+> corrige le bug de scroll dans @glmcode/tui.py
 ```
 
-### `glm --continue` ou `glm --cont`
-Reprend la dernière session :
-```bash
-glm --continue
-# ou
-glm --cont
+### Raccourcis
+
+| Touche | Effet |
+|--------|-------|
+| <kbd>Shift</kbd>+<kbd>Tab</kbd> | change de mode |
+| <kbd>Ctrl</kbd>+<kbd>C</kbd> | interrompt la requête en cours (deux fois pour quitter) |
+| <kbd>Ctrl</kbd>+<kbd>D</kbd> | quitte |
+| <kbd>PgUp</kbd> / <kbd>PgDn</kbd> | défile le transcript |
+
+Si le mode plein écran pose problème sur ton terminal, `GLMCODE_SIMPLE=1 glm`
+force une boucle ligne à ligne.
+
+## Skills
+
+Un skill est un fichier Markdown décrivant une tâche répétitive, invocable par
+`/<nom>`. Les skills fournis (`/debug`, `/explique`, `/revue-code`, `/tests`,
+`/refactor`…) sont dans `glmcode/builtin_skills/`.
+
+Pour en ajouter, dépose tes `.md` dans un dossier et déclare-le :
+
+```toml
+[skills]
+include_claude = true   # charge aussi les skills Claude Code s'ils sont présents
+dirs = ["./mes-skills"]
 ```
 
-### `glm --list-sessions`
-Liste toutes les sessions enregistrées :
-```bash
-glm --list-sessions
+## Structure
+
+```
+glmcode/
+  cli.py         boucle REPL et commandes slash
+  tui.py         interface terminal (barre épinglée, autocomplétion)
+  ui.py          rendu du transcript et thème
+  agent.py       orchestration du dialogue et des outils
+  client.py      client HTTP de l'API Z.ai (streaming)
+  coder.py       délégation au modèle codeur
+  tools.py       outils : lecture/écriture de fichiers, shell
+  config.py      chargement de la configuration
+  session.py     persistance des sessions
+  runtime.py     surveillance de fichiers, services de fond
+  builtin_skills/  skills fournis
 ```
 
-## 🧠💻 Architecture GLM Codeur : Cerveau et Codeur
-
-GLM Codeur utilise une architecture à deux niveaux intelligente pour séparer les responsabilités :
-
-### 🧠 Le Cerveau (Orchestrateur)
-- **Rôle:** Modèle principal qui gère la conversation globale
-- **Fonctions:** 
-  - Comprend la demande utilisateur
-  - Décide de l'approche à adopter
-  - Utilise des outils pour lire des fichiers, exécuter des commandes
-  - Délègue les tâches de codage complexes au codeur
-- **Modèles utilisés:** GPT-4, Claude, etc. (modèles conversationnels)
-
-### 💻 Le Codeur (Spécialisé)
-- **Rôle:** Modèle dédié exclusivement au codage technique
-- **Fonctions:**
-  - Génère du code complet et structuré
-  - Modifie des fichiers avec précision
-  - Suit un formatage strict pour les réponses
-  - Optimisé pour les tâches de programmation
-- **Modèles utilisés:** Qwen2.5-Coder, CodeLlama, etc. (modèles codeurs)
-
-### 🔧 Architecture Runtime (Niveau Système)
-- **Rôle:** Gestionnaire de bas niveau pour les opérations système persistantes
-- **Fonctions:**
-  - Shells persistants (PowerShell, CMD, Bash, WSL) qui ne se recréent pas à chaque commande
-  - Surveillance en temps réel des fichiers, dossiers et dépôts Git
-  - Bus d'événements pour la communication inter-composants
-  - Traitement des tâches en arrière-plan pendant les temps de réflexion du LLM
-  - Gestion complète des processus système (PID, logs, redémarrage/arrêt)
-  - Cache en mémoire avec expiration et LRU
-- **Composants:** RuntimeManager, ShellManager, ProcessManager, WatchManager, EventBus, BackgroundTasks, RuntimeCache
-
-### 🔄 Comment ça fonctionne ensemble
-
-1. **Le cerveau analyse la demande** et décide s'il faut déléguer
-2. **Si c'est une tâche complexe** (création/modification de fichiers), le cerveau utilise l'outil `deleguer_codeur`
-3. **Le codeur génère** le code complet dans un format structuré
-4. **Le cerveau applique** les modifications ou demande confirmation
-5. **Le cerveau vérifie** le résultat et fait la synthèse
-6. **L'architecture runtime** gère en arrière-plan les opérations système persistantes
-
-### Exemple de workflow
+## Tests
 
 ```bash
-# Demande complexe qui active les deux niveaux
-"Crée-moi une application web Flask avec authentification JWT et une base de données SQLite"
-
-# Le cerveau comprend la demande et délègue au codeur
-# Le codeur génère les fichiers : app.py, models.py, config.py, etc.
-# Le cerveau applique les modifications et vérifie que tout fonctionne
-# L'architecture runtime maintient les shells actifs, surveille les changements de fichiers,
-# et traite les tâches en arrière-plan pendant que le modèle "réfléchit"
+python -m pytest glmcode/test_tui.py glmcode/test_cli.py
 ```
-
-### Avantages de cette architecture
-
-- **Efficacité:** Le codeur est optimisé pour le codage technique
-- **Sécurité:** Le cerveau garde le contrôle sur les actions sensibles
-- **Flexibilité:** Peut fonctionner avec un seul modèle ou les deux
-- **Qualité:** Le codeur génère du code complet et bien structuré
-- **Performance:** Opérations système persistantes évitant les coûts de démarrage/arrêt répétés
-- **Réactivité:** Surveillance en temps réel et traitement en arrière-plan pour une expérience fluide
-
-## 📖 Documentation Complète
-
-- [COMMANDES.md](COMMANDES.md) - Toutes les commandes internes et skills
-- [config/README.md](config/README.md) - Configuration détaillée
-- [config/QUICKSTART.md](config/QUICKSTART.md) - Démarrage rapide
-- [config/config.example.toml](config/config.example.toml) - Fichier de configuration exemple
-
-## 🔧 Dépannage
-
-Si vous rencontrez des problèmes :
-
-1. **Essayez la méthode de nettoyage + installation:**
-   ```bash
-   # Windows
-   irm "https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.ps1" | iex
-   
-   # Linux/macOS
-   curl -sSL https://raw.githubusercontent.com/Marreouu/GLM-C0deur/main/install/nettoyer-et-installer.sh" | bash
-   ```
-
-2. **Vérifiez que Python 3.11+ est installé et dans votre PATH**
-3. **Redémarrez votre terminal après l'installation**
-4. **Consultez les fichiers de log pour plus de détails:**
-   - Windows: `%TEMP%\glm-install.log`
-   - Linux/macOS: `/tmp/glm-install.log`
-
-## Contribuer
-
-Les contributions sont les bienvenues ! Veuillez consulter le dossier `docs/` pour plus d'informations sur la contribution.
 
 ## Licence
 
-Ce projet est sous licence MIT.
+Projet personnel, sans licence explicite pour le moment.

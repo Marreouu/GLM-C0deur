@@ -5,15 +5,24 @@ config.toml
 __pycache__/
 *.pyc
 *.egg-info/
-.venv/
-venv/
 
 # Artefacts de test / session
-demo/
+
 .remember/
 
 # Fichiers parasites
 *.png
-conv.md
-glmcode_session_recap.md
 
+# Artefacts de build
+build/
+dist/
+.cache/
+
+# Fichiers de travail (sauvegardes locales, correctifs)
+*.backup
+*.restored
+*.patch
+
+# Caches d'outils
+.pytest_cache/
+.ruff_cache/

@@ -1,3 +1,16 @@
+# Dependances d'execution de GLM Code.
+# Installation : pip install -r requirements.txt
+# (ou simplement : pip install -e .)
+
+# Appels HTTP vers les API Z.ai et OpenRouter.
 requests>=2.31
+
+# Rendu du transcript : couleurs, panneaux, mise en forme.
 rich>=13.7
+
+# Interface terminal : barre epinglee, autocompletion, raccourcis.
 prompt_toolkit>=3.0
+
+# Metriques systeme et suivi des processus (glmcode.performance_monitor,
+# importe des `import glmcode` : dependance obligatoire, pas optionnelle).
+psutil>=5.9
