@@ -1,4 +1,4 @@
-![Logo](https://image.noelshack.com/fichiers/2026/28/2/1783430000-image.png)
+![GLM Code](assets/glm-code.png)
 
 # GLM Code
 

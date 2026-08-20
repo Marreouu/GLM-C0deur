@@ -10,8 +10,10 @@ __pycache__/
 
 .remember/
 
-# Fichiers parasites
+# Fichiers parasites (captures d'ecran a la racine)
 *.png
+# ... sauf les illustrations du README
+!assets/*.png
 
 # Artefacts de build
 build/
