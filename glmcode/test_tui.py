@@ -119,11 +119,10 @@ def test_tui_queue():
     # Ajouter un élément à la file d'attente
     tui._queue.append("Test message")
     queue_text = tui._queue_text()
-    # Le texte de la file d'attente est maintenant une liste de tuples (style, texte)
+    # Le texte de la file d'attente est une liste de tuples (style, texte).
     assert isinstance(queue_text, list)
-    assert len(queue_text) == 1
-    # Vérifier que le contenu contient notre message
-    assert "Test message" in queue_text[0][1]
+    rendu = "".join(texte for _, texte in queue_text)
+    assert "Test message" in rendu
 
     print("[OK] File d'attente correcte")
 
@@ -615,6 +614,57 @@ def test_outils_shell_disponibles():
         sortie = tools.run_cmd("echo ok")
         assert "[erreur]" not in sortie, sortie
         assert "ok" in sortie
+
+
+def test_file_d_attente_rendu():
+    """La zone des messages en attente doit rester lisible et bornee."""
+    agent = Mock()
+    agent.mode = "normal"
+    agent.cycle_mode = Mock()
+    agent.cancel_event = Mock()
+    agent.session_id = "test-session"
+    agent.config = Mock()
+    agent.config.model = "test-model"
+    agent.config.coder = None
+
+    tui = TUI(agent)
+
+    # Vide : aucune place occupee.
+    assert tui._queue_text() == ""
+    assert tui._queue_height() == 0
+
+    # Quelques messages : une ligne chacun.
+    tui._queue = ["premier", "deuxieme"]
+    assert tui._queue_height() == 2
+    rendu = "".join(t for _, t in tui._queue_text())
+    assert rendu.count(chr(10)) == 2
+    assert "premier" in rendu and "deuxieme" in rendu
+
+    # Un message multiligne ne doit pas casser la zone : une ligne = un message.
+    tui._queue = ["debut" + chr(10) + "milieu" + chr(10) + "fin"]
+    rendu = "".join(t for _, t in tui._queue_text())
+    assert rendu.count(chr(10)) == 1
+    assert "debut milieu fin" in rendu
+
+    # Au-dela du seuil, le reste est compte au lieu de disparaitre.
+    tui._queue = [f"message {i}" for i in range(8)]
+    assert tui._queue_height() == tui._QUEUE_VISIBLE + 1
+    rendu = "".join(t for _, t in tui._queue_text())
+    assert "et 3 autres messages" in rendu
+    assert "message 7" not in rendu
+
+    # Accord au singulier.
+    tui._queue = [f"message {i}" for i in range(tui._QUEUE_VISIBLE + 1)]
+    rendu = "".join(t for _, t in tui._queue_text())
+    assert "et 1 autre message" in rendu
+
+    # Les lignes tiennent dans la largeur du terminal.
+    import shutil
+
+    largeur = shutil.get_terminal_size(fallback=(80, 24)).columns
+    tui._queue = ["x" * 500]
+    for ligne in "".join(t for _, t in tui._queue_text()).splitlines():
+        assert len(ligne) <= largeur, ligne
 
 
 def run_all_tests():

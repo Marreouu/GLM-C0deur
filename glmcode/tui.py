@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import sys
 import threading
 import time
@@ -206,7 +207,7 @@ class TUI:
         # Zone epinglee des messages en attente (hauteur 0 si file vide).
         queue_win = Window(
             content=FormattedTextControl(self._queue_text),
-            height=lambda: min(len(self._queue), 7),
+            height=lambda: self._queue_height(),
             style="class:queued",
         )
 
@@ -301,13 +302,40 @@ class TUI:
         ))
         return segments
 
+    # Nombre de messages listes avant de basculer sur un compteur.
+    _QUEUE_VISIBLE = 5
+
+    def _queue_height(self) -> int:
+        """Hauteur de la zone : une ligne par message, plus le compteur."""
+        total = len(self._queue)
+        if total == 0:
+            return 0
+        if total <= self._QUEUE_VISIBLE:
+            return total
+        return self._QUEUE_VISIBLE + 1  # + la ligne "et N autres"
+
     def _queue_text(self):
         if not self._queue:
             return ""
+
+        # La troncature suit la largeur reelle de la fenetre, pas une
+        # constante : sinon les lignes debordent ou sont coupees trop tot.
+        largeur = shutil.get_terminal_size(fallback=(80, 24)).columns
+        place = max(20, largeur - 6)
+
         lines: list[tuple[str, str]] = []
-        for i, item in enumerate(self._queue, 1):
-            preview = item if len(item) <= 80 else item[:77] + "…"
-            lines.append((f"fg:{DIM}", f"  {i}. {preview}\n"))
+        for item in self._queue[: self._QUEUE_VISIBLE]:
+            # Un message multiligne casserait la zone : on l'aplatit.
+            texte = " ".join(item.split())
+            if len(texte) > place:
+                texte = texte[: place - 1] + "…"
+            lines.append((f"fg:{DIM2}", "  › "))
+            lines.append((f"fg:{DIM}", texte + "\n"))
+
+        reste = len(self._queue) - self._QUEUE_VISIBLE
+        if reste > 0:
+            mot = "autre message" if reste == 1 else "autres messages"
+            lines.append((f"fg:{DIM2}", f"  … et {reste} {mot}\n"))
         return lines
 
     def _confirm(self, question: str) -> bool:
