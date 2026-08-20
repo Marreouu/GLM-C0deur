@@ -547,6 +547,76 @@ def test_usage_de_tokens_collecte_depuis_le_stream():
         LLMClient.reset_usage()
 
 
+def test_indicateur_shell_dans_la_barre_de_statut():
+    """Une commande shell en cours doit s'afficher en cyan, apres les tokens."""
+    from glmcode import tools
+    from glmcode.ui import CYAN
+
+    agent = Mock()
+    agent.mode = "normal"
+    agent.cycle_mode = Mock()
+    agent.cancel_event = Mock()
+    agent.session_id = "test-session"
+    agent.config = Mock()
+    agent.config.model = "test-model"
+    agent.config.coder = None
+
+    tui = TUI(agent)
+
+    # Au repos : aucun segment cyan.
+    assert not [st for st, _ in tui._status() if CYAN in st]
+
+    # Pendant une commande : le nom du shell et la commande apparaissent.
+    tools._active_shell = ("bash", "npm test")
+    try:
+        segments = tui._status()
+        cyan = [texte for style, texte in segments if CYAN in style]
+        assert cyan, "aucun segment cyan pendant l'execution du shell"
+        assert "bash" in "".join(cyan)
+        assert "npm test" in "".join(cyan)
+
+        # L'indicateur se place apres le compteur de tokens.
+        textes = [t for _, t in segments]
+        i_tokens = next(i for i, t in enumerate(textes) if "tokens" in t)
+        i_shell = next(i for i, t in enumerate(textes) if "bash" in t)
+        assert i_shell > i_tokens
+    finally:
+        tools._active_shell = None
+
+    # Apres : plus rien en cyan.
+    assert not [st for st, _ in tui._status() if CYAN in st]
+
+
+def test_shorten_command():
+    """La commande affichee tient sur une ligne."""
+    from glmcode.tui import _shorten_command
+
+    assert _shorten_command("ls -la") == "ls -la"
+    # Les sauts de ligne casseraient la barre : ils sont aplatis.
+    assert _shorten_command("git add .\ngit commit") == "git add . git commit"
+    long = "python -m pytest tests/ --verbose --cov=. --cov-report=html"
+    court = _shorten_command(long)
+    assert len(court) <= 40
+    assert court.endswith("…")
+
+
+def test_outils_shell_disponibles():
+    """Les quatre shells sont exposes au modele et executables."""
+    from glmcode import tools
+    from glmcode.tools import TOOLS_SCHEMA
+
+    exposes = {t["function"]["name"] for t in TOOLS_SCHEMA}
+    for nom in ("run_command", "run_bash", "run_cmd", "run_powershell", "run_background"):
+        assert nom in exposes, f"{nom} n'est pas expose au modele"
+
+    # run_cmd passait une variable inexistante -> NameError systematique.
+    import os
+    if os.name == "nt":
+        sortie = tools.run_cmd("echo ok")
+        assert "[erreur]" not in sortie, sortie
+        assert "ok" in sortie
+
+
 def run_all_tests():
     """Exécuter tous les tests."""
     print("=== Tests du TUI ===")

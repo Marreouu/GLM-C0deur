@@ -28,11 +28,11 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import TextArea
 from rich.markup import escape
 
-from . import ui
+from . import tools, ui
 from .cli import HELP_TEXT, _handle_slash  # reutilise la logique des commandes /
 from .client import LLMClient
 from .runtime import runtime_manager, get_watch_manager
-from .ui import BAR, BLUE, DIM, DIM2, FG, BG, YELLOW, FileMentionCompleter, _MODE_STYLE, _IGNORE_DIRS
+from .ui import BAR, BLUE, CYAN, DIM, DIM2, FG, BG, YELLOW, FileMentionCompleter, _MODE_STYLE, _IGNORE_DIRS
 
 # Commandes integrees proposees par l'autocompletion '/'.
 _BUILTIN_COMMANDS = [
@@ -75,6 +75,12 @@ class _MentionCompleter(Completer):
                     )
             return
         yield from self._files.get_completions(document, complete_event)
+
+
+def _shorten_command(command: str, limit: int = 40) -> str:
+    """Reduit une commande a une ligne courte, affichable dans la barre."""
+    texte = " ".join(command.split())
+    return texte if len(texte) <= limit else texte[: limit - 1] + "…"
 
 
 def _format_tokens(count: int) -> str:
@@ -272,18 +278,28 @@ class TUI:
                 ("", "  "),
                 (f"fg:{YELLOW}", "o = oui · Entree ou n = non · ctrl+c annule"),
             ]
-        return [
+        segments = [
             (f"bg:{color} fg:{BG} bold", f" {label} "),
             ("", "  "),
             (f"fg:{FG}", self.subtitle),
             ("", "   "),
             (f"fg:{DIM}", f"⇅ {_format_tokens(LLMClient.total_tokens)} tokens"),
-            ("", "   "),
-            (
-                f"fg:{DIM2}",
-                "shift+tab mode · @ fichier · molette/pgup defiler · ctrl+c annule",
-            ),
         ]
+
+        # Commande shell en cours : signalee en cyan juste apres les tokens.
+        shell = tools.active_shell()
+        if shell is not None:
+            nom, commande = shell
+            segments.append(("", "   "))
+            segments.append((f"fg:{CYAN} bold", f"⚡ {nom}"))
+            segments.append((f"fg:{CYAN}", f" {_shorten_command(commande)}"))
+
+        segments.append(("", "   "))
+        segments.append((
+            f"fg:{DIM2}",
+            "shift+tab mode · @ fichier · molette/pgup defiler · ctrl+c annule",
+        ))
+        return segments
 
     def _queue_text(self):
         if not self._queue:

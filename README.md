@@ -19,6 +19,9 @@ une interface inspirée de Claude Code.
 - **Interface épinglée** — le transcript défile au-dessus d'une barre de saisie
   et de statut qui reste visible.
 - **Compteur de tokens** en direct dans la barre de statut.
+- **Shells multiples** — `bash` (Git Bash ou WSL sous Windows), `powershell`,
+  `cmd`, plus l'exécution en arrière-plan. La commande en cours s'affiche en
+  cyan dans la barre de statut, à côté du compteur de tokens.
 - **Surveillance de fichiers** — l'agent est réveillé quand un fichier change en
   dehors de l'assistant.
 - **Multiplateforme** — Windows, Linux et macOS.
@@ -197,6 +200,26 @@ fichier mentionné est joint au message envoyé :
 
 ```
 > corrige le bug de scroll dans @glmcode/tui.py
+```
+
+### Shells
+
+L'assistant dispose de plusieurs outils d'exécution, qu'il choisit selon la
+tâche :
+
+| Outil | Usage |
+|-------|-------|
+| `run_command` | commande via le shell par défaut du système |
+| `run_bash` | bash — Git Bash ou WSL sous Windows |
+| `run_powershell` | PowerShell (Windows) |
+| `run_cmd` | invite de commandes (Windows) |
+| `run_background` | lancement en arrière-plan, sans attendre la fin |
+
+Pendant l'exécution, la barre de statut affiche en cyan le shell utilisé et la
+commande :
+
+```
+ NORMAL   glm-4.5-flash   ⇅ 1.2k tokens   ⚡ bash npm test --coverage
 ```
 
 ### Raccourcis

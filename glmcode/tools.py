@@ -11,6 +11,7 @@ demande de confirmation geree dans agent.py (sauf mode auto_approve).
 from __future__ import annotations
 
 import subprocess
+import functools
 import shutil
 import glob as glob_module
 import os
@@ -104,7 +105,35 @@ def _decode(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+# ─── Activite shell (lue par la barre de statut du TUI) ─────────────────
+# Renseignee pendant qu'une commande tourne, remise a None ensuite. Ecrite
+# depuis le thread de l'agent, lue depuis le thread d'affichage : une simple
+# reference suffit, aucune section critique n'est necessaire.
+_active_shell: tuple[str, str] | None = None
+
+
+def active_shell() -> tuple[str, str] | None:
+    """Renvoie (nom du shell, commande) si une commande tourne, sinon None."""
+    return _active_shell
+
+
+def _shell_tool(shell_name: str):
+    """Signale a l'interface qu'un shell tourne pendant l'appel."""
+    def decorateur(fn):
+        @functools.wraps(fn)
+        def enveloppe(command: str = "", *args, **kwargs):
+            global _active_shell
+            _active_shell = (shell_name, command)
+            try:
+                return fn(command, *args, **kwargs)
+            finally:
+                _active_shell = None
+        return enveloppe
+    return decorateur
+
+
 @profile("run_command")
+@_shell_tool("shell")
 def run_command(command: str, **_) -> str:
     # On capture des octets bruts (pas de text=True) pour eviter les crashs de
     # decodage : la sortie Windows n'est pas toujours de l'UTF-8.
@@ -764,6 +793,7 @@ def project_info(**_) -> str:
 
 
 @profile("run_background")
+@_shell_tool("shell (fond)")
 def run_background(command: str, **_) -> str:
     """Lance une commande en arriere-plan et retourne immédiatement le PID."""
     try:
@@ -831,6 +861,7 @@ def kill_process(pid: str, **_) -> str:
 
 
 @profile("run_powershell")
+@_shell_tool("powershell")
 def run_powershell(command: str, **_) -> str:
     """Execute une commande PowerShell."""
     if os.name != 'nt':
@@ -856,6 +887,7 @@ def run_powershell(command: str, **_) -> str:
 
 
 @profile("run_cmd")
+@_shell_tool("cmd")
 def run_cmd(command: str, **_) -> str:
     """Execute une commande CMD Windows."""
     if os.name != 'nt':
@@ -864,8 +896,7 @@ def run_cmd(command: str, **_) -> str:
 
     try:
         result = subprocess.run(
-            cmd,
-            shell=True,
+            ["cmd", "/c", command],
             capture_output=True,
             text=True,
             timeout=30
@@ -881,16 +912,33 @@ def run_cmd(command: str, **_) -> str:
         return f"[erreur] Impossible d'executer la commande CMD: {e}"
 
 
+def _bash_argv(command: str) -> list[str] | None:
+    """Trouve un bash utilisable, y compris sous Windows.
+
+    Git Bash installe `bash.exe` dans le PATH ; a defaut, WSL peut en fournir
+    un. Renvoie None si aucun n'est disponible.
+    """
+    bash = shutil.which("bash")
+    if bash:
+        return [bash, "-c", command]
+    if os.name == "nt" and shutil.which("wsl"):
+        return ["wsl", "bash", "-c", command]
+    return None
+
+
 @profile("run_bash")
+@_shell_tool("bash")
 def run_bash(command: str, **_) -> str:
     """Execute une commande Bash."""
-    if os.name == 'nt':
-        record_metric("run_bash_skipped", 1, "count", {"reason": "windows", "os": os.name})
-        return "[erreur] Bash n'est pas disponible par défaut sur Windows (utilisez WSL ou Git Bash)"
+    argv = _bash_argv(command)
+    if argv is None:
+        record_metric("run_bash_skipped", 1, "count", {"reason": "no_bash", "os": os.name})
+        return ("[erreur] Aucun bash trouve. Sous Windows, installe Git Bash "
+                "ou WSL ; sinon utilise run_powershell ou run_cmd.")
 
     try:
         result = subprocess.run(
-            ["bash", "-c", command],
+            argv,
             capture_output=True,
             text=True,
             timeout=30
